@@ -24,11 +24,11 @@ interface IAfricarareNFT {
 }
 
 /* Africarare NFT Marketplace
-    List NFT, 
-    Buy NFT, 
-    Offer NFT, 
-    Accept offer, 
-    Create auction, 
+    List NFT,
+    Buy NFT,
+    Offer NFT,
+    Accept offer,
+    Create auction,
     Bid place,
     & support Royalty
 */
@@ -66,7 +66,7 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
         uint256 startTime;
         uint256 endTime;
         address lastBidder;
-        uint256 heighestBid;
+        uint256 highestBid;
         address winner;
         bool success;
     }
@@ -165,7 +165,10 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
     }
 
     modifier isAfricarareNFT(address _nft) {
-        require(africarareNFTFactory.isAfricarareNFT(_nft), "not Africarare NFT");
+        require(
+            africarareNFTFactory.isAfricarareNFT(_nft),
+            "not Africarare NFT"
+        );
         _;
     }
 
@@ -468,7 +471,7 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
             startTime: _startTime,
             endTime: _endTime,
             lastBidder: address(0),
-            heighestBid: _price,
+            highestBid: _price,
             winner: address(0),
             success: false
         });
@@ -516,7 +519,7 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
         );
         require(
             _bidPrice >=
-                auctionNfts[_nft][_tokenId].heighestBid +
+                auctionNfts[_nft][_tokenId].highestBid +
                     auctionNfts[_nft][_tokenId].minBid,
             "less than min bid price"
         );
@@ -527,7 +530,7 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
 
         if (auction.lastBidder != address(0)) {
             address lastBidder = auction.lastBidder;
-            uint256 lastBidPrice = auction.heighestBid;
+            uint256 lastBidPrice = auction.highestBid;
 
             // Transfer back to last bidder
             payToken.transfer(lastBidder, lastBidPrice);
@@ -535,7 +538,7 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
 
         // Set new heighest bid price
         auction.lastBidder = msg.sender;
-        auction.heighestBid = _bidPrice;
+        auction.highestBid = _bidPrice;
 
         emit PlacedBid(_nft, _tokenId, auction.payToken, _bidPrice, msg.sender);
     }
@@ -565,11 +568,11 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
         address royaltyRecipient = africarareNft.getRoyaltyRecipient();
         uint256 royaltyFee = africarareNft.getRoyaltyFee();
 
-        uint256 heighestBid = auction.heighestBid;
-        uint256 totalPrice = heighestBid;
+        uint256 highestBid = auction.highestBid;
+        uint256 totalPrice = highestBid;
 
         if (royaltyFee > 0) {
-            uint256 royaltyTotal = calculateRoyalty(royaltyFee, heighestBid);
+            uint256 royaltyTotal = calculateRoyalty(royaltyFee, highestBid);
 
             // Transfer royalty fee to collection owner
             payToken.transfer(royaltyRecipient, royaltyTotal);
@@ -577,7 +580,7 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
         }
 
         // Calculate & Transfer platfrom fee
-        uint256 platformFeeTotal = calculatePlatformFee(heighestBid);
+        uint256 platformFeeTotal = calculatePlatformFee(highestBid);
         payToken.transfer(feeRecipient, platformFeeTotal);
 
         // Transfer to auction creator
@@ -591,7 +594,7 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
             _tokenId,
             auction.creator,
             auction.lastBidder,
-            auction.heighestBid,
+            auction.highestBid,
             msg.sender
         );
     }
