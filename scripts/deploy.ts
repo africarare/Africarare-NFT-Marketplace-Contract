@@ -7,8 +7,8 @@ import {
 
 async function main() {
   const signers = await ethers.getSigners();
-  const KuiNFTFactory = new AfricarareNFTFactory__factory(signers[0]);
-  const africarareNFTFactory = await KuiNFTFactory.deploy();
+  const AfricarareNFTFactory = new AfricarareNFTFactory__factory(signers[0]);
+  const africarareNFTFactory = await AfricarareNFTFactory.deploy();
   await africarareNFTFactory.deployed();
   console.log(
     "AfricarareNFTFactory deployed to: ",
