@@ -5,6 +5,6 @@ install:
 compile:
 	npx hardhat compile
 deploy:
-	echo "npx hardhat run scripts/deploy.ts --network <network>"
+	npx hardhat run scripts/deploy.ts --network localhost
 test:
-	echo "npx hardhat test test/africarare.ts --network <network>"
+	npx hardhat test test/africarare.ts --network localhost
