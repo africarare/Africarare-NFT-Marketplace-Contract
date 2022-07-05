@@ -10,3 +10,5 @@ test:
 	npx hardhat test test/africarare.ts --network localhost
 node:
 	npx hardhat node
+format:
+	npx prettier --write 'contracts/**/*.sol'
