@@ -7,7 +7,7 @@ compile:
 deploy:
 	npx hardhat run scripts/deploy.ts --network localhost
 test:
-	npx hardhat test test/africarare.ts --network localhost
+	npx hardhat test test/africarare.ts
 node:
 	npx hardhat node
 format:
