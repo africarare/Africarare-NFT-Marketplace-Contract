@@ -1,5 +1,5 @@
 {
-  "name": "hardhat-project",
+  "name": "AfricarareNFTMarketplace",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.5",
     "@nomiclabs/hardhat-etherscan": "^3.0.3",
@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^4.7.0",
-    "hardhat-contract-sizer": "^2.6.1"
+    "hardhat-contract-sizer": "^2.6.1",
+    "just": "^0.1.8"
   }
 }
