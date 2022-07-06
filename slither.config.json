@@ -5,5 +5,5 @@
     "exclude_high": false,
     "disable_color": false,
     "legacy_ast": false,
-    "detectors_to_exclude": "external-function"
+    "detectors_to_exclude": "external-function, unused-return"
 }
