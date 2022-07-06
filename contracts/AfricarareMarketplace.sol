@@ -164,6 +164,7 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
     error NotListedNft();
     error PlatformFeeTooHigh(uint256 platformFee, uint256 requiredLessThan);
 
+
     constructor(
         uint256 _platformFee,
         address _feeRecipient,
@@ -240,6 +241,7 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         _;
     }
 
+
     //TODO: Remove this function in plate of inheriting this function from OZ
     function onERC721Received(
         address,
@@ -248,10 +250,12 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         bytes calldata
     ) public pure override returns (bytes4) {
         return
-            bytes4(
-                keccak256("onERC721Received(address,address,uint256,bytes)")
-            );
+        bytes4(
+            keccak256("onERC721Received(address,address,uint256,bytes)")
+        );
     }
+
+
 
     // @notice List NFT on Marketplace
     function listNft(
@@ -283,8 +287,8 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
     {
         ListNFT memory listedNFT = listNfts[_nft][_tokenId];
         require(listedNFT.seller == msg.sender, "not listed owner");
-        IERC721(_nft).safeTransferFrom(address(this), msg.sender, _tokenId);
         delete listNfts[_nft][_tokenId];
+        IERC721(_nft).safeTransferFrom(address(this), msg.sender, _tokenId);
     }
 
     // @notice Buy listed NFT
@@ -483,7 +487,6 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         require(nft.ownerOf(_tokenId) == msg.sender, "not nft owner");
         require(_endTime > _startTime, "invalid end time");
 
-        nft.safeTransferFrom(msg.sender, address(this), _tokenId);
 
         auctionNfts[_nft][_tokenId] = AuctionNFT({
             nft: _nft,
@@ -499,6 +502,8 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
             winner: address(0),
             success: false
         });
+
+        nft.safeTransferFrom(msg.sender, address(this), _tokenId);
 
         emit CreatedAuction(
             _nft,
@@ -523,8 +528,8 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         require(auction.lastBidder == address(0), "already have bidder");
 
         IERC721 nft = IERC721(_nft);
-        nft.safeTransferFrom(address(this), msg.sender, _tokenId);
         delete auctionNfts[_nft][_tokenId];
+        nft.safeTransferFrom(address(this), msg.sender, _tokenId);
     }
 
     // @notice Bid place auction
@@ -550,23 +555,24 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
 
         AuctionNFT storage auction = auctionNfts[_nft][_tokenId];
         IERC20 payToken = IERC20(auction.payToken);
+        // Set new highest bid price
+        auction.lastBidder = msg.sender;
+        auction.highestBid = _bidPrice;
         payToken.safeTransferFrom(msg.sender, address(this), _bidPrice);
 
         if (auction.lastBidder != address(0)) {
             address lastBidder = auction.lastBidder;
             uint256 lastBidPrice = auction.highestBid;
 
-            // Set new highest bid price
-            auction.lastBidder = msg.sender;
-            auction.highestBid = _bidPrice;
             // Transfer back to last bidder
             payToken.safeTransfer(lastBidder, lastBidPrice);
         }
 
+
         emit PlacedBid(_nft, _tokenId, auction.payToken, _bidPrice, msg.sender);
     }
 
-    // @notice Result auction, can call by auction creator, heighest bidder, or marketplace owner only!
+    // @notice Result auction, can call by auction creator, highest bidder, or marketplace owner only!
     function resultAuction(address _nft, uint256 _tokenId) external {
         require(!auctionNfts[_nft][_tokenId].success, "already resulted");
         require(
@@ -610,11 +616,7 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         payToken.safeTransfer(auction.creator, totalPrice - platformFeeTotal);
 
         // Transfer NFT to the winner
-        nft.safeTransferFrom(
-            address(this),
-            auction.lastBidder,
-            auction.tokenId
-        );
+        nft.safeTransferFrom(address(this), auction.lastBidder, auction.tokenId);
 
         emit ResultedAuction(
             _nft,
