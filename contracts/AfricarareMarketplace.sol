@@ -164,7 +164,6 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
     error NotListedNft();
     error PlatformFeeTooHigh(uint256 platformFee, uint256 requiredLessThan);
 
-
     constructor(
         uint256 _platformFee,
         address _feeRecipient,
@@ -241,7 +240,6 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         _;
     }
 
-
     //TODO: Remove this function in plate of inheriting this function from OZ
     function onERC721Received(
         address,
@@ -250,12 +248,10 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         bytes calldata
     ) public pure override returns (bytes4) {
         return
-        bytes4(
-            keccak256("onERC721Received(address,address,uint256,bytes)")
-        );
+            bytes4(
+                keccak256("onERC721Received(address,address,uint256,bytes)")
+            );
     }
-
-
 
     // @notice List NFT on Marketplace
     function listNft(
@@ -560,13 +556,12 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
             address lastBidder = auction.lastBidder;
             uint256 lastBidPrice = auction.highestBid;
 
+            // Set new highest bid price
+            auction.lastBidder = msg.sender;
+            auction.highestBid = _bidPrice;
             // Transfer back to last bidder
             payToken.safeTransfer(lastBidder, lastBidPrice);
         }
-
-        // Set new highest bid price
-        auction.lastBidder = msg.sender;
-        auction.highestBid = _bidPrice;
 
         emit PlacedBid(_nft, _tokenId, auction.payToken, _bidPrice, msg.sender);
     }
@@ -615,7 +610,11 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         payToken.safeTransfer(auction.creator, totalPrice - platformFeeTotal);
 
         // Transfer NFT to the winner
-        nft.safeTransferFrom(address(this), auction.lastBidder, auction.tokenId);
+        nft.safeTransferFrom(
+            address(this),
+            auction.lastBidder,
+            auction.tokenId
+        );
 
         emit ResultedAuction(
             _nft,
