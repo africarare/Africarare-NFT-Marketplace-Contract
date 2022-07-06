@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 // Author: Beau Williams
-pragma solidity ^0.8.4;
+pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+// import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 interface IAfricarareNFTFactory {
     function createNFTCollection(
@@ -32,7 +34,8 @@ interface IAfricarareNFT {
     Bid place,
     & support Royalty
 */
-contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
+contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
+    using SafeERC20 for IERC20;
     IAfricarareNFTFactory private immutable africarareNFTFactory;
 
     uint256 private platformFee;
@@ -229,6 +232,22 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
         _;
     }
 
+
+    //TODO: Remove this function in plate of inheriting this function from OZ
+    function onERC721Received(
+        address,
+        address,
+        uint256,
+        bytes calldata
+    ) public pure override returns (bytes4) {
+        return
+        bytes4(
+            keccak256("onERC721Received(address,address,uint256,bytes)")
+        );
+    }
+
+
+
     // @notice List NFT on Marketplace
     function listNft(
         address _nft,
@@ -238,7 +257,7 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
     ) external isAfricarareNFT(_nft) isPayableToken(_payToken) {
         IERC721 nft = IERC721(_nft);
         require(nft.ownerOf(_tokenId) == msg.sender, "not nft owner");
-        nft.transferFrom(msg.sender, address(this), _tokenId);
+        nft.safeTransferFrom(msg.sender, address(this), _tokenId);
 
         listNfts[_nft][_tokenId] = ListNFT({
             nft: _nft,
@@ -259,7 +278,7 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
     {
         ListNFT memory listedNFT = listNfts[_nft][_tokenId];
         require(listedNFT.seller == msg.sender, "not listed owner");
-        IERC721(_nft).transferFrom(address(this), msg.sender, _tokenId);
+        IERC721(_nft).safeTransferFrom(address(this), msg.sender, _tokenId);
         delete listNfts[_nft][_tokenId];
     }
 
@@ -289,7 +308,7 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
             uint256 royaltyTotal = calculateRoyalty(royaltyFee, _price);
 
             // Transfer royalty fee to collection owner
-            IERC20(listedNft.payToken).transferFrom(
+            IERC20(listedNft.payToken).safeTransferFrom(
                 msg.sender,
                 royaltyRecipient,
                 royaltyTotal
@@ -299,14 +318,14 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
 
         // Calculate & Transfer platfrom fee
         uint256 platformFeeTotal = calculatePlatformFee(_price);
-        IERC20(listedNft.payToken).transferFrom(
+        IERC20(listedNft.payToken).safeTransferFrom(
             msg.sender,
             feeRecipient,
             platformFeeTotal
         );
 
         // Transfer to nft owner
-        IERC20(listedNft.payToken).transferFrom(
+        IERC20(listedNft.payToken).safeTransferFrom(
             msg.sender,
             listedNft.seller,
             totalPrice - platformFeeTotal
@@ -339,7 +358,7 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
         require(_offerPrice > 0, "price can not 0");
 
         ListNFT memory nft = listNfts[_nft][_tokenId];
-        IERC20(nft.payToken).transferFrom(
+        IERC20(nft.payToken).safeTransferFrom(
             msg.sender,
             address(this),
             _offerPrice
@@ -372,7 +391,7 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
         require(offer.offerer == msg.sender, "not offerer");
         require(!offer.accepted, "offer already accepted");
         delete offerNfts[_nft][_tokenId][msg.sender];
-        IERC20(offer.payToken).transfer(offer.offerer, offer.offerPrice);
+        IERC20(offer.payToken).safeTransfer(offer.offerer, offer.offerPrice);
         emit CanceledOfferredNFT(
             offer.nft,
             offer.tokenId,
@@ -417,16 +436,16 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
             uint256 royaltyTotal = calculateRoyalty(royaltyFee, offerPrice);
 
             // Transfer royalty fee to collection owner
-            payToken.transfer(royaltyRecipient, royaltyTotal);
+            payToken.safeTransfer(royaltyRecipient, royaltyTotal);
             totalPrice -= royaltyTotal;
         }
 
         // Calculate & Transfer platfrom fee
         uint256 platformFeeTotal = calculatePlatformFee(offerPrice);
-        payToken.transfer(feeRecipient, platformFeeTotal);
+        payToken.safeTransfer(feeRecipient, platformFeeTotal);
 
         // Transfer to seller
-        payToken.transfer(list.seller, totalPrice - platformFeeTotal);
+        payToken.safeTransfer(list.seller, totalPrice - platformFeeTotal);
 
         // Transfer NFT to offerer
         IERC721(list.nft).safeTransferFrom(
@@ -459,7 +478,7 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
         require(nft.ownerOf(_tokenId) == msg.sender, "not nft owner");
         require(_endTime > _startTime, "invalid end time");
 
-        nft.transferFrom(msg.sender, address(this), _tokenId);
+        nft.safeTransferFrom(msg.sender, address(this), _tokenId);
 
         auctionNfts[_nft][_tokenId] = AuctionNFT({
             nft: _nft,
@@ -499,7 +518,7 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
         require(auction.lastBidder == address(0), "already have bidder");
 
         IERC721 nft = IERC721(_nft);
-        nft.transferFrom(address(this), msg.sender, _tokenId);
+        nft.safeTransferFrom(address(this), msg.sender, _tokenId);
         delete auctionNfts[_nft][_tokenId];
     }
 
@@ -526,14 +545,14 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
 
         AuctionNFT storage auction = auctionNfts[_nft][_tokenId];
         IERC20 payToken = IERC20(auction.payToken);
-        payToken.transferFrom(msg.sender, address(this), _bidPrice);
+        payToken.safeTransferFrom(msg.sender, address(this), _bidPrice);
 
         if (auction.lastBidder != address(0)) {
             address lastBidder = auction.lastBidder;
             uint256 lastBidPrice = auction.highestBid;
 
             // Transfer back to last bidder
-            payToken.transfer(lastBidder, lastBidPrice);
+            payToken.safeTransfer(lastBidder, lastBidPrice);
         }
 
         // Set new heighest bid price
@@ -575,19 +594,19 @@ contract AfricarareNFTMarketplace is Ownable, ReentrancyGuard {
             uint256 royaltyTotal = calculateRoyalty(royaltyFee, highestBid);
 
             // Transfer royalty fee to collection owner
-            payToken.transfer(royaltyRecipient, royaltyTotal);
+            payToken.safeTransfer(royaltyRecipient, royaltyTotal);
             totalPrice -= royaltyTotal;
         }
 
         // Calculate & Transfer platfrom fee
         uint256 platformFeeTotal = calculatePlatformFee(highestBid);
-        payToken.transfer(feeRecipient, platformFeeTotal);
+        payToken.safeTransfer(feeRecipient, platformFeeTotal);
 
         // Transfer to auction creator
-        payToken.transfer(auction.creator, totalPrice - platformFeeTotal);
+        payToken.safeTransfer(auction.creator, totalPrice - platformFeeTotal);
 
         // Transfer NFT to the winner
-        nft.transferFrom(address(this), auction.lastBidder, auction.tokenId);
+        nft.safeTransferFrom(address(this), auction.lastBidder, auction.tokenId);
 
         emit ResultedAuction(
             _nft,
