@@ -4,8 +4,10 @@ install:
 	npm install
 compile:
 	npx hardhat compile
-deploy:
+deploy-localhost:
 	npx hardhat run scripts/deploy.ts --network localhost
+deploy-testnet:
+	npx hardhat run scripts/deploy.ts --network goerli
 test:
 	npx hardhat test test/africarare.ts
 node:
