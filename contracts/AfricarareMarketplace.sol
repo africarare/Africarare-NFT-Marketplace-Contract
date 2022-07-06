@@ -34,6 +34,7 @@ interface IAfricarareNFT {
     Bid place,
     & support Royalty
 */
+
 contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
     using SafeERC20 for IERC20;
     IAfricarareNFTFactory private immutable africarareNFTFactory;
@@ -84,10 +85,10 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
     mapping(address => mapping(uint256 => mapping(address => OfferNFT)))
         private offerNfts;
 
-    // nft => tokenId => acuton struct
+    // nft => tokenId => auction struct
     mapping(address => mapping(uint256 => AuctionNFT)) private auctionNfts;
 
-    // auciton index => bidding counts => bidder address => bid price
+    // auction index => bidding counts => bidder address => bid price
     mapping(uint256 => mapping(uint256 => mapping(address => uint256)))
         private bidPrices;
 
@@ -107,14 +108,14 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         address seller,
         address indexed buyer
     );
-    event OfferredNFT(
+    event OfferedNFT(
         address indexed nft,
         uint256 indexed tokenId,
         address payToken,
         uint256 offerPrice,
         address indexed offerer
     );
-    event CanceledOfferredNFT(
+    event CanceledOfferedNFT(
         address indexed nft,
         uint256 indexed tokenId,
         address payToken,
@@ -155,6 +156,14 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         uint256 price,
         address caller
     );
+    //ERRORS
+    // Insufficient balance for transfer. Needed `required` but only `available` available.
+    // @param available balance available.
+    // @param required requested amount to transfer.
+    error InsufficientBalance(uint256 available, uint256 required);
+    error NotListedNft();
+    error PlatformFeeTooHigh(uint256 platformFee, uint256 requiredLessThan);
+
 
     constructor(
         uint256 _platformFee,
@@ -211,7 +220,7 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         _;
     }
 
-    modifier isOfferredNFT(
+    modifier isOfferedNFT(
         address _nft,
         uint256 _tokenId,
         address _offerer
@@ -219,7 +228,7 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         OfferNFT memory offer = offerNfts[_nft][_tokenId][_offerer];
         require(
             offer.offerPrice > 0 && offer.offerer != address(0),
-            "not offerred nft"
+            "not offered nft"
         );
         _;
     }
@@ -316,7 +325,7 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
             totalPrice -= royaltyTotal;
         }
 
-        // Calculate & Transfer platfrom fee
+        // Calculate & Transfer platform fee
         uint256 platformFeeTotal = calculatePlatformFee(_price);
         IERC20(listedNft.payToken).safeTransferFrom(
             msg.sender,
@@ -373,7 +382,7 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
             accepted: false
         });
 
-        emit OfferredNFT(
+        emit OfferedNFT(
             nft.nft,
             nft.tokenId,
             nft.payToken,
@@ -382,17 +391,17 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         );
     }
 
-    // @notice Offerer cancel offerring
+    // @notice Offerer cancel offering
     function cancelOfferNFT(address _nft, uint256 _tokenId)
         external
-        isOfferredNFT(_nft, _tokenId, msg.sender)
+        isOfferedNFT(_nft, _tokenId, msg.sender)
     {
         OfferNFT memory offer = offerNfts[_nft][_tokenId][msg.sender];
         require(offer.offerer == msg.sender, "not offerer");
         require(!offer.accepted, "offer already accepted");
         delete offerNfts[_nft][_tokenId][msg.sender];
         IERC20(offer.payToken).safeTransfer(offer.offerer, offer.offerPrice);
-        emit CanceledOfferredNFT(
+        emit CanceledOfferedNFT(
             offer.nft,
             offer.tokenId,
             offer.payToken,
@@ -401,14 +410,14 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         );
     }
 
-    // @notice listed NFT owner accept offerring
+    // @notice listed NFT owner accept offering
     function acceptOfferNFT(
         address _nft,
         uint256 _tokenId,
         address _offerer
     )
         external
-        isOfferredNFT(_nft, _tokenId, _offerer)
+        isOfferedNFT(_nft, _tokenId, _offerer)
         isListedNFT(_nft, _tokenId)
     {
         require(
@@ -440,7 +449,7 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
             totalPrice -= royaltyTotal;
         }
 
-        // Calculate & Transfer platfrom fee
+        // Calculate & Transfer platform fee
         uint256 platformFeeTotal = calculatePlatformFee(offerPrice);
         payToken.safeTransfer(feeRecipient, platformFeeTotal);
 
@@ -464,7 +473,7 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         );
     }
 
-    // @notice Create autcion
+    // @notice Create auction
     function createAuction(
         address _nft,
         uint256 _tokenId,
@@ -555,7 +564,7 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
             payToken.safeTransfer(lastBidder, lastBidPrice);
         }
 
-        // Set new heighest bid price
+        // Set new highest bid price
         auction.lastBidder = msg.sender;
         auction.highestBid = _bidPrice;
 

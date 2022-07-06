@@ -196,7 +196,7 @@ describe("Africarare Marketplace", () => {
         );
       const receipt = await tx.wait();
       const events = receipt.events?.filter(
-        (e: any) => e.event == "OfferredNFT"
+        (e: any) => e.event == "OfferedNFT"
       ) as any;
       const eventOfferer = events[0].args.offerer;
       const eventNFT = events[0].args.nft;
@@ -215,7 +215,7 @@ describe("Africarare Marketplace", () => {
         .cancelOfferNFT(nft.address, tokenId);
       const receipt = await tx.wait();
       const events = receipt.events?.filter(
-        (e: any) => e.event == "CanceledOfferredNFT"
+        (e: any) => e.event == "CanceledOfferedNFT"
       ) as any;
       const eventNFT = events[0].args.nft;
       const eventTokenId = events[0].args.tokenId;
@@ -243,7 +243,7 @@ describe("Africarare Marketplace", () => {
         );
       const receipt = await tx.wait();
       const events = receipt.events?.filter(
-        (e: any) => e.event == "OfferredNFT"
+        (e: any) => e.event == "OfferedNFT"
       ) as any;
       const eventOfferer = events[0].args.offerer;
       const eventNFT = events[0].args.nft;
