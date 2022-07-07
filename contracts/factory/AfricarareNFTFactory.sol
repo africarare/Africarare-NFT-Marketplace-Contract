@@ -2,7 +2,7 @@
 // Author: Beau Williams
 pragma solidity ^0.8.4;
 
-import "./AfricarareNFT.sol";
+import "../token/AfricarareNFT.sol";
 
 /* Africarare NFT Factory
     Create new Africarare NFT collection
