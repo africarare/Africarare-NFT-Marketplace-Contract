@@ -21,7 +21,6 @@ interface IAfricarareNFTFactory {
 
 interface IAfricarareNFT {
     function getRoyaltyFee() external view returns (uint256);
-
     function getRoyaltyRecipient() external view returns (address);
 }
 

@@ -17,6 +17,9 @@ contract AfricarareNFT is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
     uint256 private royaltyFee;
     address private royaltyRecipient;
 
+    error ZeroAddress();
+    error TenPercentMax();
+
     constructor(
         string memory _name,
         string memory _symbol,
@@ -24,8 +27,10 @@ contract AfricarareNFT is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
         uint256 _royaltyFee,
         address _royaltyRecipient
     ) ERC721(_name, _symbol) {
-        require(_royaltyFee <= 10000, "can't more than 10 percent");
-        require(_royaltyRecipient != address(0));
+        if (_royaltyFee >= 10000)
+            revert TenPercentMax();
+        if (_royaltyRecipient == address(0) || _owner == address(0))
+           revert ZeroAddress();
         royaltyFee = _royaltyFee;
         royaltyRecipient = _royaltyRecipient;
         transferOwnership(_owner);
