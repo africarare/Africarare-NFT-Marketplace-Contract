@@ -1,1 +1,4 @@
-node_modules
+# directories
+**/artifacts
+**/node_modules
+contracts/test
