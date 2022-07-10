@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-// Author: Beau Williams
+// Author: Africarare
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -9,20 +9,9 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 // import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-interface IAfricarareNFTFactory {
-    function createNFTCollection(
-        string memory _name,
-        string memory _symbol,
-        uint256 _royaltyFee
-    ) external;
-
-    function isAfricarareNFT(address _nft) external view returns (bool);
-}
-
-interface IAfricarareNFT {
-    function getRoyaltyFee() external view returns (uint256);
-    function getRoyaltyRecipient() external view returns (address);
-}
+import "./interfaces/IAfricarareNFTFactory.sol";
+import "./interfaces/IAfricarareNFT.sol";
+import "./utils/errors.sol";
 
 /* Africarare NFT Marketplace
     List NFT,
@@ -139,6 +128,14 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         uint256 endTime,
         address indexed creator
     );
+
+    event CancelledAuction(
+        address indexed nft,
+        uint256 indexed tokenId,
+        uint256 endTime,
+        address indexed creator
+    );
+
     event PlacedBid(
         address indexed nft,
         uint256 indexed tokenId,
@@ -155,14 +152,6 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         uint256 price,
         address caller
     );
-    //ERRORS
-    // Insufficient balance for transfer. Needed `required` but only `available` available.
-    // @param available balance available.
-    // @param required requested amount to transfer.
-    error InsufficientBalance(uint256 available, uint256 required);
-    error NotListedNft();
-    error PlatformFeeTooHigh(uint256 platformFee, uint256 requiredLessThan);
-
 
     constructor(
         uint256 _platformFee,
@@ -240,7 +229,6 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         _;
     }
 
-
     //TODO: Remove this function in plate of inheriting this function from OZ
     function onERC721Received(
         address,
@@ -249,12 +237,10 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         bytes calldata
     ) public pure override returns (bytes4) {
         return
-        bytes4(
-            keccak256("onERC721Received(address,address,uint256,bytes)")
-        );
+            bytes4(
+                keccak256("onERC721Received(address,address,uint256,bytes)")
+            );
     }
-
-
 
     // @notice List NFT on Marketplace
     function listNft(
@@ -486,7 +472,6 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         require(nft.ownerOf(_tokenId) == msg.sender, "not nft owner");
         require(_endTime > _startTime, "invalid end time");
 
-
         auctionNfts[_nft][_tokenId] = AuctionNFT({
             nft: _nft,
             tokenId: _tokenId,
@@ -529,6 +514,12 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         IERC721 nft = IERC721(_nft);
         delete auctionNfts[_nft][_tokenId];
         nft.safeTransferFrom(address(this), msg.sender, _tokenId);
+        emit CancelledAuction(
+            _nft,
+            _tokenId,
+            block.timestamp,
+            msg.sender
+        );
     }
 
     // @notice Bid place auction
@@ -566,7 +557,6 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
             // Transfer back to last bidder
             payToken.safeTransfer(lastBidder, lastBidPrice);
         }
-
 
         emit PlacedBid(_nft, _tokenId, auction.payToken, _bidPrice, msg.sender);
     }
@@ -615,7 +605,11 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         payToken.safeTransfer(auction.creator, totalPrice - platformFeeTotal);
 
         // Transfer NFT to the winner
-        nft.safeTransferFrom(address(this), auction.lastBidder, auction.tokenId);
+        nft.safeTransferFrom(
+            address(this),
+            auction.lastBidder,
+            auction.tokenId
+        );
 
         emit ResultedAuction(
             _nft,
