@@ -10,3 +10,4 @@ pragma solidity ^0.8.4;
 error InsufficientBalance(uint256 available, uint256 required);
 error NotListedNft();
 error PlatformFeeExceedLimit(uint256 platformFee, uint256 requiredLessThan);
+error NotOfferer(address addressOfOfferer, address addressOfSender);

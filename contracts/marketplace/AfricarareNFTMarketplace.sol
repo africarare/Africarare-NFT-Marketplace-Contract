@@ -382,7 +382,9 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         isOfferedNFT(_nft, _tokenId, msg.sender)
     {
         OfferNFT memory offer = offerNfts[_nft][_tokenId][msg.sender];
-        require(offer.offerer == msg.sender, "not offerer");
+        if (offer.offerer != msg.sender)
+            revert NotOfferer(offer.offerer, msg.sender);
+        // require(offer.offerer == msg.sender, "not offerer");
         require(!offer.accepted, "offer already accepted");
         delete offerNfts[_nft][_tokenId][msg.sender];
         IERC20(offer.payToken).safeTransfer(offer.offerer, offer.offerPrice);
@@ -418,7 +420,6 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         offer.accepted = true;
 
         uint256 offerPrice = offer.offerPrice;
-        uint256 totalPrice = offerPrice;
 
         IAfricarareNFT nft = IAfricarareNFT(offer.nft);
         address royaltyRecipient = nft.getRoyaltyRecipient();
@@ -426,20 +427,23 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
 
         IERC20 payToken = IERC20(offer.payToken);
 
-        if (royaltyFee > 0) {
-            uint256 royaltyTotal = calculateRoyalty(royaltyFee, offerPrice);
-
-            // Transfer royalty fee to collection owner
+        // Transfer royalty fee to collection owner
+        uint256 royaltyTotal = calculateRoyalty(royaltyFee, offerPrice);
+        if (royaltyTotal > 0) {
             payToken.safeTransfer(royaltyRecipient, royaltyTotal);
-            totalPrice -= royaltyTotal;
         }
 
         // Calculate & Transfer platform fee
         uint256 platformFeeTotal = calculatePlatformFee(offerPrice);
-        payToken.safeTransfer(feeRecipient, platformFeeTotal);
+        if (platformFeeTotal > 0) {
+            payToken.safeTransfer(feeRecipient, platformFeeTotal);
+        }
 
         // Transfer to seller
-        payToken.safeTransfer(list.seller, totalPrice - platformFeeTotal);
+        payToken.safeTransfer(
+            list.seller,
+            offerPrice - platformFeeTotal - royaltyTotal
+        );
 
         // Transfer NFT to offerer
         IERC721(list.nft).safeTransferFrom(
@@ -514,12 +518,7 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         IERC721 nft = IERC721(_nft);
         delete auctionNfts[_nft][_tokenId];
         nft.safeTransferFrom(address(this), msg.sender, _tokenId);
-        emit CancelledAuction(
-            _nft,
-            _tokenId,
-            block.timestamp,
-            msg.sender
-        );
+        emit CancelledAuction(_nft, _tokenId, block.timestamp, msg.sender);
     }
 
     // @notice Bid place auction
@@ -591,7 +590,6 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
 
         if (royaltyFee > 0) {
             uint256 royaltyTotal = calculateRoyalty(royaltyFee, highestBid);
-
             // Transfer royalty fee to collection owner
             payToken.safeTransfer(royaltyRecipient, royaltyTotal);
             totalPrice -= royaltyTotal;
