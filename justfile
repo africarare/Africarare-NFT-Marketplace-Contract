@@ -18,3 +18,8 @@ format:
 	npx prettier --write 'contracts/**/*.sol'
 audit:
 	npx hardhat audit
+print-audit:
+	cat ./audit/audit.md
+print-gas-usage:
+	cat gasUsageReport.md
+
