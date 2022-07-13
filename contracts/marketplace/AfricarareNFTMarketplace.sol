@@ -158,7 +158,8 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         address _feeRecipient,
         IAfricarareNFTFactory _africarareNFTFactory
     ) {
-        require(_platformFee <= 10000, "can't more than 10 percent");
+        if (_platformFee > 10000)
+            revert PlatformFeeExceedLimit(_platformFee, 10000);
         platformFee = _platformFee;
         feeRecipient = _feeRecipient;
         africarareNFTFactory = _africarareNFTFactory;
@@ -172,12 +173,19 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
         _;
     }
 
+
+    //@dev: This is a gas optimisation trick reusing function instead of require in modifier
+    function _isListedNFT(address _nft, uint256 _tokenId) internal view {
+        if (listNfts[_nft][_tokenId].seller == address(0)) {
+            revert SellerIsZeroAddress(_nft,_tokenId);
+        }
+        if (listNfts[_nft][_tokenId].sold) {
+            revert ItemIsSold(_nft,_tokenId);
+        }
+    }
+
     modifier isListedNFT(address _nft, uint256 _tokenId) {
-        ListNFT memory listedNFT = listNfts[_nft][_tokenId];
-        require(
-            listedNFT.seller != address(0) && !listedNFT.sold,
-            "not listed"
-        );
+        _isListedNFT(_nft,_tokenId);
         _;
     }
 
