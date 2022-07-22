@@ -1,6 +1,7 @@
 {
   "name": "AfricarareNFTMarketplace",
   "scripts": {
+    "prepare": "npx husky install",
     "lint": "solhint -f table contracts/**/*.sol",
     "compile": "npx hardhat compile",
     "deploy-localhost": "npx hardhat run scripts/deploy.ts --network localhost",
