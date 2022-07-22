@@ -1,7 +1,7 @@
 {
   "name": "AfricarareNFTMarketplace",
   "scripts": {
-    "lint": "solhint -f table contracts/**/*.sol test",
+    "lint": "solhint -f table contracts/**/*.sol",
     "compile": "npx hardhat compile",
     "deploy-localhost": "npx hardhat run scripts/deploy.ts --network localhost",
     "deploy-testnet": "npx hardhat run scripts/deploy.ts --network goerli",
