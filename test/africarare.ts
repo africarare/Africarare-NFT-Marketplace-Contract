@@ -2,6 +2,7 @@ import { expect } from "chai";
 import { BigNumber, Signer } from "ethers";
 import { ethers } from "hardhat";
 import { before } from "mocha";
+import {logger} from "../config/winston.config";
 
 import {
   AfricarareNFT,
@@ -28,6 +29,10 @@ describe("Africarare Marketplace", () => {
   let offerer: Signer;
   let bidder: Signer;
   let payableToken: IERC20;
+  logger.log({
+    message: 'Running tests',
+    level: 'info'
+  });
 
   before(async () => {
     [owner, creator, buyer, offerer, bidder] = await ethers.getSigners();

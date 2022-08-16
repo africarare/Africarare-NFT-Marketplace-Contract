@@ -1,6 +1,6 @@
 const { createLogger, format, transports } = require('winston');
 const { combine, timestamp, json, printf, splat } = format;
-const logger = createLogger({
+export const logger = createLogger({
     format: combine(
         timestamp({
             format: 'YYYY-MM-DD HH:mm:ss'
@@ -25,19 +25,19 @@ const logger = createLogger({
 });
 
 if (process.env.NODE_ENV !== 'production') {
-    
+
     // meta param is ensured by splat()
-    const myFormat =   printf(info => {
-    
+    const myFormat =   printf((info:any) => {
+
         delete info.message.addresses
-       
+
         return `${info.timestamp} [${info.level}] : ${JSON.stringify(info.message)}`;
     })
-        
+
         // printf(({ timestamp, level, message, meta }) => {
         // return `${timestamp};${level};${message};${meta};${meta? JSON.stringify(meta) : ''}`;
     // });
-    
+
     logger.add(new transports.Console({
         // format: format.simple(),
         format:combine(
@@ -47,5 +47,3 @@ if (process.env.NODE_ENV !== 'production') {
         colorize: true,
     }));
 }
-
-module.exports.logger = logger;

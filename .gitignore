@@ -9,3 +9,11 @@ cache
 artifacts
 
 .nyc_output
+.nyc_output/
+.nyc_output/*
+
+#Log files
+/logs/
+
+#Remix
+contracts/.deps
