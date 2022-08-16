@@ -29,10 +29,7 @@ describe("Africarare Marketplace", () => {
   let offerer: Signer;
   let bidder: Signer;
   let payableToken: IERC20;
-  logger.log({
-    message: 'Running tests',
-    level: 'info'
-  });
+  logger.info("Test suite started")
 
   before(async () => {
     [owner, creator, buyer, offerer, bidder] = await ethers.getSigners();
