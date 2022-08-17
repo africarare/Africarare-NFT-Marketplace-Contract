@@ -1,222 +1,255 @@
 Summary
- - [events-maths](#events-maths) (2 results) (Low)
- - [missing-zero-check](#missing-zero-check) (1 results) (Low)
- - [reentrancy-benign](#reentrancy-benign) (2 results) (Low)
- - [reentrancy-events](#reentrancy-events) (8 results) (Low)
- - [timestamp](#timestamp) (3 results) (Low)
- - [missing-inheritance](#missing-inheritance) (1 results) (Informational)
- - [unused-state](#unused-state) (1 results) (Informational)
- - [external-function](#external-function) (3 results) (Optimization)
-## events-maths
-Impact: Low
+ - [uninitialized-local](#uninitialized-local) (1 results) (Medium)
+ - [missing-zero-check](#missing-zero-check) (5 results) (Low)
+ - [reentrancy-events](#reentrancy-events) (3 results) (Low)
+ - [solc-version](#solc-version) (6 results) (Informational)
+ - [reentrancy-unlimited-gas](#reentrancy-unlimited-gas) (1 results) (Informational)
+ - [external-function](#external-function) (15 results) (Optimization)
+## uninitialized-local
+Impact: Medium
 Confidence: Medium
  - [ ] ID-0
-[AfricarareNFTMarketplace.updatePlatformFee(uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L673-L676) should emit an event for: 
-	- [platformFee = _platformFee](contracts/marketplace/AfricarareNFTMarketplace.sol#L675) 
+[TokenMarket.createSale(address,uint256,uint256,uint256)._standard](contracts/TokenMarket.sol#L151) is a local variable never initialized
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L673-L676
-
-
- - [ ] ID-1
-[AfricarareNFT.updateRoyaltyFee(uint256)](contracts/token/AfricarareNFT.sol#L72-L75) should emit an event for: 
-	- [royaltyFee = _royaltyFee](contracts/token/AfricarareNFT.sol#L74) 
-
-contracts/token/AfricarareNFT.sol#L72-L75
+contracts/TokenMarket.sol#L151
 
 
 ## missing-zero-check
 Impact: Low
 Confidence: Medium
+ - [ ] ID-1
+[TokenStorage.setFeeAddress(address)._feeAddress](contracts/Storage.sol#L219) lacks a zero-check on :
+		- [feeAddress = _feeAddress](contracts/Storage.sol#L220)
+
+contracts/Storage.sol#L219
+
+
  - [ ] ID-2
-[AfricarareNFTMarketplace.constructor(uint256,address,IAfricarareNFTFactory)._feeRecipient](contracts/marketplace/AfricarareNFTMarketplace.sol#L169) lacks a zero-check on :
-		- [feeRecipient = _feeRecipient](contracts/marketplace/AfricarareNFTMarketplace.sol#L174)
+[TokenStorage.constructor(uint256,address)._feeAddress](contracts/Storage.sol#L68) lacks a zero-check on :
+		- [feeAddress = _feeAddress](contracts/Storage.sol#L72)
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L169
+contracts/Storage.sol#L68
 
 
-## reentrancy-benign
-Impact: Low
-Confidence: Medium
  - [ ] ID-3
-Reentrancy in [AfricarareNFTMarketplace.offerNFT(address,uint256,address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L360-L391):
-	External calls:
-	- [IERC20(nft.payToken).safeTransferFrom(msg.sender,address(this),_offerPrice)](contracts/marketplace/AfricarareNFTMarketplace.sol#L369-L373)
-	State variables written after the call(s):
-	- [offerNfts[_nft][_tokenId][msg.sender] = OfferNFT(nft.nft,nft.tokenId,msg.sender,_payToken,_offerPrice,false)](contracts/marketplace/AfricarareNFTMarketplace.sol#L375-L382)
+[TokenMarket.constructor(uint256,address,address)._storageContractAddress](contracts/TokenMarket.sol#L96) lacks a zero-check on :
+		- [storageContractAddress = _storageContractAddress](contracts/TokenMarket.sol#L103)
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L360-L391
+contracts/TokenMarket.sol#L96
 
 
  - [ ] ID-4
-Reentrancy in [AfricarareNFTMarketplace.listNft(address,uint256,address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L260-L280):
-	External calls:
-	- [nft.safeTransferFrom(msg.sender,address(this),_tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L268)
-	State variables written after the call(s):
-	- [listNfts[_nft][_tokenId] = ListNFT(_nft,_tokenId,msg.sender,_payToken,_price,false)](contracts/marketplace/AfricarareNFTMarketplace.sol#L270-L277)
+[TokenMarket.constructor(uint256,address,address)._nftContractAddress](contracts/TokenMarket.sol#L95) lacks a zero-check on :
+		- [nftContractAddress = _nftContractAddress](contracts/TokenMarket.sol#L102)
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L260-L280
+contracts/TokenMarket.sol#L95
+
+
+ - [ ] ID-5
+[TokenAsset721.constructor(address)._proxyRegistryAddress](contracts/TokenAsset721.sol#L19) lacks a zero-check on :
+		- [proxyRegistryAddress = _proxyRegistryAddress](contracts/TokenAsset721.sol#L26)
+
+contracts/TokenAsset721.sol#L19
 
 
 ## reentrancy-events
 Impact: Low
 Confidence: Medium
- - [ ] ID-5
-Reentrancy in [AfricarareNFTMarketplace.acceptOfferNFT(address,uint256,address)](contracts/marketplace/AfricarareNFTMarketplace.sol#L413-L473):
-	External calls:
-	- [payToken.safeTransfer(royaltyRecipient,royaltyTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L447)
-	- [payToken.safeTransfer(feeRecipient,platformFeeTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L453)
-	- [payToken.safeTransfer(list.seller,totalPrice - platformFeeTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L456)
-	- [IERC721(list.nft).safeTransferFrom(address(this),offer.offerer,list.tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L459-L463)
-	Event emitted after the call(s):
-	- [AcceptedNFT(offer.nft,offer.tokenId,offer.payToken,offer.offerPrice,offer.offerer,list.seller)](contracts/marketplace/AfricarareNFTMarketplace.sol#L465-L472)
-
-contracts/marketplace/AfricarareNFTMarketplace.sol#L413-L473
-
-
  - [ ] ID-6
-Reentrancy in [AfricarareNFTMarketplace.resultAuction(address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L575-L628):
+Reentrancy in [TokenMarket.buyToken(address,uint256,uint256)](contracts/TokenMarket.sol#L207-L284):
 	External calls:
-	- [payToken.safeTransfer(royaltyRecipient,royaltyTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L606)
-	- [payToken.safeTransfer(feeRecipient,platformFeeTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L612)
-	- [payToken.safeTransfer(auction.creator,totalPrice - platformFeeTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L615)
-	- [nft.safeTransferFrom(address(this),auction.lastBidder,auction.tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L618)
+	- [TokenAsset721(_nftAddress).safeTransferFrom(owner,_msgSender(),_tokenId)](contracts/TokenMarket.sol#L238-L242)
+	- [TokenAsset(_nftAddress).safeTransferFrom(owner,_msgSender(),_tokenId,amount,)](contracts/TokenMarket.sol#L251-L257)
+	- [tokenStorage.buyToken(_nftAddress,_tokenId,_itemId,amount,price,owner,_msgSender(),block.timestamp)](contracts/TokenMarket.sol#L264-L273)
+	External calls sending eth:
+	- [payPurchaseFee(address(owner),address(creator),msg.value,royalty)](contracts/TokenMarket.sol#L262)
+		- [_owner.transfer(forOwner)](contracts/TokenMarket.sol#L299)
+		- [_platform.transfer(forPlatform)](contracts/TokenMarket.sol#L300)
+		- [_creator.transfer(forCreator)](contracts/TokenMarket.sol#L302)
 	Event emitted after the call(s):
-	- [ResultedAuction(_nft,_tokenId,auction.creator,auction.lastBidder,auction.highestBid,msg.sender)](contracts/marketplace/AfricarareNFTMarketplace.sol#L620-L627)
+	- [TokenBought(standard,_nftAddress,_tokenId,_itemId,amount,price,owner)](contracts/TokenMarket.sol#L275-L283)
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L575-L628
+contracts/TokenMarket.sol#L207-L284
 
 
  - [ ] ID-7
-Reentrancy in [AfricarareNFTMarketplace.cancelOfferNFT(address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L394-L410):
+Reentrancy in [TokenMarket.mintToken(uint256,uint256,uint256)](contracts/TokenMarket.sol#L107-L140):
 	External calls:
-	- [IERC20(offer.payToken).safeTransfer(offer.offerer,offer.offerPrice)](contracts/marketplace/AfricarareNFTMarketplace.sol#L402)
+	- [TokenAsset(nftContractAddress).mint(_msgSender(),_tokenId,_amount,0x)](contracts/TokenMarket.sol#L123-L128)
+	- [tokenStorage.mintToken(nftContractAddress,_tokenId,_amount,_msgSender(),_royalty,block.timestamp)](contracts/TokenMarket.sol#L130-L137)
 	Event emitted after the call(s):
-	- [CanceledOfferedNFT(offer.nft,offer.tokenId,offer.payToken,offer.offerPrice,msg.sender)](contracts/marketplace/AfricarareNFTMarketplace.sol#L403-L409)
+	- [TokenMinted(nftContractAddress,_tokenId,_amount,_msgSender())](contracts/TokenMarket.sol#L139)
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L394-L410
+contracts/TokenMarket.sol#L107-L140
 
 
  - [ ] ID-8
-Reentrancy in [AfricarareNFTMarketplace.createAuction(address,uint256,address,uint256,uint256,uint256,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L476-L517):
+Reentrancy in [TokenMarket.createSale(address,uint256,uint256,uint256)](contracts/TokenMarket.sol#L142-L205):
 	External calls:
-	- [nft.safeTransferFrom(msg.sender,address(this),_tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L505)
+	- [tokenStorage.listToken(_nftAddress,_tokenId,_itemId,_amount,_price,_msgSender(),_standard,block.timestamp)](contracts/TokenMarket.sol#L185-L194)
 	Event emitted after the call(s):
-	- [CreatedAuction(_nft,_tokenId,_payToken,_price,_minBid,_startTime,_endTime,msg.sender)](contracts/marketplace/AfricarareNFTMarketplace.sol#L507-L516)
+	- [TokenListed(_standard,_nftAddress,_tokenId,_itemId,_amount,_price,_msgSender())](contracts/TokenMarket.sol#L196-L204)
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L476-L517
+contracts/TokenMarket.sol#L142-L205
 
 
+## solc-version
+Impact: Informational
+Confidence: High
  - [ ] ID-9
-Reentrancy in [AfricarareNFTMarketplace.buyNFT(address,uint256,address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L294-L357):
-	External calls:
-	- [IERC20(listedNft.payToken).safeTransferFrom(msg.sender,royaltyRecipient,royaltyTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L319-L323)
-	- [IERC20(listedNft.payToken).safeTransferFrom(msg.sender,feeRecipient,platformFeeTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L329-L333)
-	- [IERC20(listedNft.payToken).safeTransferFrom(msg.sender,listedNft.seller,totalPrice - platformFeeTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L336-L340)
-	- [IERC721(listedNft.nft).safeTransferFrom(address(this),msg.sender,listedNft.tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L343-L347)
-	Event emitted after the call(s):
-	- [BoughtNFT(listedNft.nft,listedNft.tokenId,listedNft.payToken,_price,listedNft.seller,msg.sender)](contracts/marketplace/AfricarareNFTMarketplace.sol#L349-L356)
+Pragma version[^0.8.9](contracts/Proxy.sol#L2) necessitates a version too recent to be trusted. Consider deploying with 0.6.12/0.7.6/0.8.7
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L294-L357
+contracts/Proxy.sol#L2
 
 
  - [ ] ID-10
-Reentrancy in [AfricarareNFTMarketplace.offerNFT(address,uint256,address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L360-L391):
-	External calls:
-	- [IERC20(nft.payToken).safeTransferFrom(msg.sender,address(this),_offerPrice)](contracts/marketplace/AfricarareNFTMarketplace.sol#L369-L373)
-	Event emitted after the call(s):
-	- [OfferedNFT(nft.nft,nft.tokenId,nft.payToken,_offerPrice,msg.sender)](contracts/marketplace/AfricarareNFTMarketplace.sol#L384-L390)
+Pragma version[^0.8.9](contracts/TokenAsset.sol#L2) necessitates a version too recent to be trusted. Consider deploying with 0.6.12/0.7.6/0.8.7
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L360-L391
+contracts/TokenAsset.sol#L2
 
 
  - [ ] ID-11
-Reentrancy in [AfricarareNFTMarketplace.listNft(address,uint256,address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L260-L280):
-	External calls:
-	- [nft.safeTransferFrom(msg.sender,address(this),_tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L268)
-	Event emitted after the call(s):
-	- [ListedNFT(_nft,_tokenId,_payToken,_price,msg.sender)](contracts/marketplace/AfricarareNFTMarketplace.sol#L279)
+Pragma version[^0.8.9](contracts/TokenMarket.sol#L2) necessitates a version too recent to be trusted. Consider deploying with 0.6.12/0.7.6/0.8.7
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L260-L280
+contracts/TokenMarket.sol#L2
 
 
  - [ ] ID-12
-Reentrancy in [AfricarareNFTMarketplace.bidPlace(address,uint256,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L535-L572):
-	External calls:
-	- [payToken.safeTransferFrom(msg.sender,address(this),_bidPrice)](contracts/marketplace/AfricarareNFTMarketplace.sol#L560)
-	- [payToken.safeTransfer(lastBidder,lastBidPrice)](contracts/marketplace/AfricarareNFTMarketplace.sol#L567)
-	Event emitted after the call(s):
-	- [PlacedBid(_nft,_tokenId,auction.payToken,_bidPrice,msg.sender)](contracts/marketplace/AfricarareNFTMarketplace.sol#L571)
+Pragma version[^0.8.9](contracts/Storage.sol#L2) necessitates a version too recent to be trusted. Consider deploying with 0.6.12/0.7.6/0.8.7
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L535-L572
+contracts/Storage.sol#L2
 
 
-## timestamp
-Impact: Low
-Confidence: Medium
  - [ ] ID-13
-[AfricarareNFTMarketplace.cancelAuction(address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L520-L532) uses timestamp for comparisons
-	Dangerous comparisons:
-	- [require(bool,string)(block.timestamp < auction.startTime,auction already started)](contracts/marketplace/AfricarareNFTMarketplace.sol#L526)
+Pragma version[^0.8.9](contracts/TokenAsset721.sol#L2) necessitates a version too recent to be trusted. Consider deploying with 0.6.12/0.7.6/0.8.7
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L520-L532
+contracts/TokenAsset721.sol#L2
 
 
  - [ ] ID-14
-[AfricarareNFTMarketplace.bidPlace(address,uint256,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L535-L572) uses timestamp for comparisons
-	Dangerous comparisons:
-	- [require(bool,string)(block.timestamp >= auctionNfts[_nft][_tokenId].startTime,auction not start)](contracts/marketplace/AfricarareNFTMarketplace.sol#L540-L543)
-	- [require(bool,string)(block.timestamp <= auctionNfts[_nft][_tokenId].endTime,auction ended)](contracts/marketplace/AfricarareNFTMarketplace.sol#L544-L547)
+solc-0.8.9 is not recommended for deployment
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L535-L572
-
-
+## reentrancy-unlimited-gas
+Impact: Informational
+Confidence: Medium
  - [ ] ID-15
-[AfricarareNFTMarketplace.resultAuction(address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L575-L628) uses timestamp for comparisons
-	Dangerous comparisons:
-	- [require(bool,string)(block.timestamp > auctionNfts[_nft][_tokenId].endTime,auction not ended)](contracts/marketplace/AfricarareNFTMarketplace.sol#L583-L586)
+Reentrancy in [TokenMarket.buyToken(address,uint256,uint256)](contracts/TokenMarket.sol#L207-L284):
+	External calls:
+	- [payPurchaseFee(address(owner),address(creator),msg.value,royalty)](contracts/TokenMarket.sol#L262)
+		- [_owner.transfer(forOwner)](contracts/TokenMarket.sol#L299)
+		- [_platform.transfer(forPlatform)](contracts/TokenMarket.sol#L300)
+		- [_creator.transfer(forCreator)](contracts/TokenMarket.sol#L302)
+	Event emitted after the call(s):
+	- [TokenBought(standard,_nftAddress,_tokenId,_itemId,amount,price,owner)](contracts/TokenMarket.sol#L275-L283)
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L575-L628
-
-
-## missing-inheritance
-Impact: Informational
-Confidence: High
- - [ ] ID-16
-[AfricarareNFT](contracts/token/AfricarareNFT.sol#L12-L76) should inherit from [IAfricarareNFT](contracts/marketplace/AfricarareNFTMarketplace.sol#L22-L25)
-
-contracts/token/AfricarareNFT.sol#L12-L76
-
-
-## unused-state
-Impact: Informational
-Confidence: High
- - [ ] ID-17
-[AfricarareNFTMarketplace.bidPrices](contracts/marketplace/AfricarareNFTMarketplace.sol#L91-L92) is never used in [AfricarareNFTMarketplace](contracts/marketplace/AfricarareNFTMarketplace.sol#L37-L682)
-
-contracts/marketplace/AfricarareNFTMarketplace.sol#L91-L92
+contracts/TokenMarket.sol#L207-L284
 
 
 ## external-function
 Impact: Optimization
 Confidence: High
- - [ ] ID-18
-safeMint(address,string) should be declared external:
-	- [AfricarareNFT.safeMint(address,string)](contracts/token/AfricarareNFT.sol#L39-L44)
+ - [ ] ID-16
+isTokenMinted(address,uint256) should be declared external:
+	- [TokenStorage.isTokenMinted(address,uint256)](contracts/Storage.sol#L139-L149)
 
-contracts/token/AfricarareNFT.sol#L39-L44
+contracts/Storage.sol#L139-L149
+
+
+ - [ ] ID-17
+getTokenListingCount(address,uint256) should be declared external:
+	- [TokenStorage.getTokenListingCount(address,uint256)](contracts/Storage.sol#L151-L157)
+
+contracts/Storage.sol#L151-L157
+
+
+ - [ ] ID-18
+buyToken(address,uint256,uint256) should be declared external:
+	- [TokenMarket.buyToken(address,uint256,uint256)](contracts/TokenMarket.sol#L207-L284)
+
+contracts/TokenMarket.sol#L207-L284
 
 
  - [ ] ID-19
-onERC721Received(address,address,uint256,bytes) should be declared external:
-	- [AfricarareNFTMarketplace.onERC721Received(address,address,uint256,bytes)](contracts/marketplace/AfricarareNFTMarketplace.sol#L245-L255)
+getMintedToken(address,uint256) should be declared external:
+	- [TokenStorage.getMintedToken(address,uint256)](contracts/Storage.sol#L175-L181)
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L245-L255
+contracts/Storage.sol#L175-L181
 
 
  - [ ] ID-20
-getListedNFT(address,uint256) should be declared external:
-	- [AfricarareNFTMarketplace.getListedNFT(address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L646-L652)
+unpause() should be declared external:
+	- [TokenAsset721.unpause()](contracts/TokenAsset721.sol#L44-L46)
 
-contracts/marketplace/AfricarareNFTMarketplace.sol#L646-L652
+contracts/TokenAsset721.sol#L44-L46
+
+
+ - [ ] ID-21
+setMaxRoyalty(uint256) should be declared external:
+	- [TokenMarket.setMaxRoyalty(uint256)](contracts/TokenMarket.sol#L306-L308)
+
+contracts/TokenMarket.sol#L306-L308
+
+
+ - [ ] ID-22
+mint(address,uint256) should be declared external:
+	- [TokenAsset721.mint(address,uint256)](contracts/TokenAsset721.sol#L48-L50)
+
+contracts/TokenAsset721.sol#L48-L50
+
+
+ - [ ] ID-23
+getBoughtToken(address,uint256,uint256) should be declared external:
+	- [TokenStorage.getBoughtToken(address,uint256,uint256)](contracts/Storage.sol#L183-L189)
+
+contracts/Storage.sol#L183-L189
+
+
+ - [ ] ID-24
+getListedToken(address,uint256,uint256) should be declared external:
+	- [TokenStorage.getListedToken(address,uint256,uint256)](contracts/Storage.sol#L191-L217)
+
+contracts/Storage.sol#L191-L217
+
+
+ - [ ] ID-25
+getRoyalty(address,uint256) should be declared external:
+	- [TokenStorage.getRoyalty(address,uint256)](contracts/Storage.sol#L167-L173)
+
+contracts/Storage.sol#L167-L173
+
+
+ - [ ] ID-26
+setURI(string) should be declared external:
+	- [TokenAsset.setURI(string)](contracts/TokenAsset.sol#L46-L48)
+
+contracts/TokenAsset.sol#L46-L48
+
+
+ - [ ] ID-27
+mintToken(uint256,uint256,uint256) should be declared external:
+	- [TokenMarket.mintToken(uint256,uint256,uint256)](contracts/TokenMarket.sol#L107-L140)
+
+contracts/TokenMarket.sol#L107-L140
+
+
+ - [ ] ID-28
+pause() should be declared external:
+	- [TokenAsset721.pause()](contracts/TokenAsset721.sol#L40-L42)
+
+contracts/TokenAsset721.sol#L40-L42
+
+
+ - [ ] ID-29
+getCreator(address,uint256) should be declared external:
+	- [TokenStorage.getCreator(address,uint256)](contracts/Storage.sol#L159-L165)
+
+contracts/Storage.sol#L159-L165
+
+
+ - [ ] ID-30
+setContractURI(string) should be declared external:
+	- [TokenAsset.setContractURI(string)](contracts/TokenAsset.sol#L50-L55)
+
+contracts/TokenAsset.sol#L50-L55
 
 

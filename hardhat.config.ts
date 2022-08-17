@@ -39,11 +39,11 @@ const config: HardhatUserConfig = {
   solidity: {
     compilers: [
       {
-        version: "0.8.4",
+        version: "0.8.9",
         settings: {
           optimizer: {
             enabled: true,
-            runs: 2000,
+            runs: 200,
           },
         },
       },
@@ -57,7 +57,7 @@ const config: HardhatUserConfig = {
       },
     },
     coverage: {
-      url: "http://127.0.0.1:8555", // Coverage launches its own ganache-cli client
+      url: "http://127.0.0.1:8545", // Coverage launches its own ganache-cli client
     },
     ropsten: {
       url: process.env.ROPSTEN_RPC_URL || defaultPrivateKey,
