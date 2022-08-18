@@ -164,16 +164,6 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    bytes4 private constant INTERFACE_ID_ERC721 = 0x80ac58cd;
-    bytes4 private constant INTERFACE_ID_ERC1155 = 0xd9b67a26;
-
-    function _supportERC721(address _nftAddress) private view returns (bool) {
-        return IERC165(_nftAddress).supportsInterface(INTERFACE_ID_ERC721);
-    }
-
-    function _supportERC1155(address _nftAddress) private view returns (bool) {
-        return IERC165(_nftAddress).supportsInterface(INTERFACE_ID_ERC1155);
-    }
 
     //@notice: List NFT
     function listNft(
@@ -626,4 +616,6 @@ contract AfricarareNFTMarketplace is
         require(_feeRecipient != address(0), "can't be 0 address");
         feeRecipient = _feeRecipient;
     }
+
+
 }
