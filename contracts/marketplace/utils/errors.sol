@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Author: Africarare
-pragma solidity ^0.8.4;
+pragma solidity 0.8.4;
 
 //ERRORS
 // Insufficient balance for transfer. Needed `required` but only `available` available.
