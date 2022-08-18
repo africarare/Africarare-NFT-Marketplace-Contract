@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Author: Africarare
-pragma solidity 0.8.4;
+pragma solidity 0.8.7;
 
 struct ListNFT {
     address nft;

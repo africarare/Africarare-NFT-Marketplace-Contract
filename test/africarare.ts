@@ -29,7 +29,9 @@ describe("Africarare Marketplace", () => {
   let offerer: Signer;
   let bidder: Signer;
   let payableToken: IERC20;
+  const offerPrice = 1; //1ETH
   logger.info("Test suite started")
+  logger.info("Offer price for testing is 1 ETH, in wei is: " + toWei(offerPrice))
 
   before(async () => {
     [owner, creator, buyer, offerer, bidder] = await ethers.getSigners();
@@ -39,7 +41,9 @@ describe("Africarare Marketplace", () => {
     expect(factory.address).not.eq(null, "Deploy factory is failed.");
 
     const Marketplace = new AfricarareNFTMarketplace__factory(owner);
-    const platformFee = BigNumber.from(10); // 10%
+    // const platformFee = BigNumber.from(10; // 10%
+    const platformFee = 10; // 10%
+
     const feeRecipient = await owner.getAddress();
     marketplace = await Marketplace.deploy(
       platformFee,
@@ -184,7 +188,6 @@ describe("Africarare Marketplace", () => {
     });
 
     it("Buyer should offer NFT", async () => {
-      const offerPrice = 1000;
       await payableToken
         .connect(buyer)
         .approve(marketplace.address, toWei(offerPrice));
@@ -231,7 +234,6 @@ describe("Africarare Marketplace", () => {
     });
 
     it("Offerer should offer NFT", async () => {
-      const offerPrice = 1000;
       await payableToken
         .connect(offerer)
         .approve(marketplace.address, toWei(offerPrice));
