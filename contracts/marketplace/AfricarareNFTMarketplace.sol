@@ -18,7 +18,9 @@
 pragma solidity 0.8.7;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
+import "@openzeppelin/contracts/token/ERC1155/IERC1155.sol";
+import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 // import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -28,7 +30,7 @@ import "./interfaces/IAfricarareNFTFactory.sol";
 import "./interfaces/IAfricarareNFT.sol";
 import "./errors/errors.sol";
 import "./structures/structs.sol";
-import {AfricarareMarketplaceEvents} from "./events/events.sol";
+import {MarketplaceEvents} from "./events/events.sol";
 
 /*
     @dev: Africarare NFT Marketplace
@@ -45,13 +47,16 @@ import {AfricarareMarketplaceEvents} from "./events/events.sol";
     @TODO: Change fee logic to work in percentages 0-100,
     @TODO: end to end unit test
     @TODO: clean up offer, list logic
+    @TODO: add timestamps to structs and events
+    @TODO: use safe 1155, 721 interfaces like safe erc20?
 */
 
 contract AfricarareNFTMarketplace is
-    IERC721Receiver,
+    ERC721Holder,
+    ERC1155Holder,
     Ownable,
     ReentrancyGuard,
-    AfricarareMarketplaceEvents
+    MarketplaceEvents
 {
     using SafeERC20 for IERC20;
     IAfricarareNFTFactory private immutable africarareNFTFactory;
@@ -168,19 +173,6 @@ contract AfricarareNFTMarketplace is
 
     function _supportERC1155(address _nftAddress) private view returns (bool) {
         return IERC165(_nftAddress).supportsInterface(INTERFACE_ID_ERC1155);
-    }
-
-    //@TODO: Remove this function in plate of inheriting this function from OZ
-    function onERC721Received(
-        address,
-        address,
-        uint256,
-        bytes calldata
-    ) public pure override returns (bytes4) {
-        return
-            bytes4(
-                keccak256("onERC721Received(address,address,uint256,bytes)")
-            );
     }
 
     //@notice: List NFT

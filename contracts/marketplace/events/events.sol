@@ -2,7 +2,7 @@
 // Author: Africarare
 pragma solidity 0.8.7;
 
-abstract contract AfricarareMarketplaceEvents {
+abstract contract MarketplaceEvents {
     event ListedNFT(
         address indexed nft,
         uint256 indexed tokenId,
