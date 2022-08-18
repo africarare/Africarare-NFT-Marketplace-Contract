@@ -7,9 +7,17 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
+import "../registry/Proxy.sol";
 
 /* Africarare NFT-ERC721 */
-contract AfricarareNFT is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
+contract AfricarareNFT is
+    ERC721,
+    ERC721URIStorage,
+    ERC721Burnable,
+    Ownable,
+    Pausable
+{
     using Counters for Counters.Counter;
 
     Counters.Counter private _tokenIdCounter;
@@ -18,7 +26,7 @@ contract AfricarareNFT is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
     address private royaltyRecipient;
 
     error ZeroAddress();
-    error TenPercentMax();
+    error RoyaltyMaxExceeded(uint256 given, uint256 max);
 
     constructor(
         string memory _name,
@@ -27,12 +35,25 @@ contract AfricarareNFT is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
         uint256 _royaltyFee,
         address _royaltyRecipient
     ) ERC721(_name, _symbol) {
-        if (_royaltyFee >= 10000) revert TenPercentMax();
-        if (_royaltyRecipient == address(0) || _owner == address(0))
-            revert ZeroAddress();
+        _notExceedMaxRoyalty(_royaltyFee);
+        _notZeroAddress(_owner);
+        _notZeroAddress(_royaltyRecipient);
         royaltyFee = _royaltyFee;
         royaltyRecipient = _royaltyRecipient;
         transferOwnership(_owner);
+    }
+
+    function _notZeroAddress(address _address) internal pure {
+        if (_address == address(0)) revert ZeroAddress();
+    }
+
+    function _notExceedMaxRoyalty(uint256 _royaltyFee) internal pure {
+        if (_royaltyFee >= 10000) revert RoyaltyMaxExceeded(_royaltyFee, 10000);
+    }
+
+    modifier notExceedMaxRoyalty(uint256 _royaltyFee) {
+        _notExceedMaxRoyalty(_royaltyFee);
+        _;
     }
 
     function safeMint(address to, string memory uri) public onlyOwner {
@@ -41,8 +62,6 @@ contract AfricarareNFT is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
     }
-
-    // The following functions are overrides required by Solidity.
 
     function _burn(uint256 tokenId)
         internal
@@ -68,8 +87,39 @@ contract AfricarareNFT is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
         return royaltyRecipient;
     }
 
-    function updateRoyaltyFee(uint256 _royaltyFee) external onlyOwner {
-        require(_royaltyFee <= 10000, "can't more than 10 percent");
+    function updateRoyaltyFee(uint256 _royaltyFee)
+        external
+        onlyOwner
+        notExceedMaxRoyalty(_royaltyFee)
+    {
         royaltyFee = _royaltyFee;
     }
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 tokenId
+    ) internal override whenNotPaused {
+        super._beforeTokenTransfer(from, to, tokenId);
+    }
+
+    /**
+     * Override isApprovedForAll to whitelist user's OpenSea proxy accounts to enable gas-free listings.
+     */
+    //rinkeby
+    // address private proxyRegistryAddress = 0x1E525EEAF261cA41b809884CBDE9DD9E1619573A;
+    // function isApprovedForAll(address _owner, address _operator)
+    //     public
+    //     view
+    //     override
+    //     returns (bool isOperator)
+    // {
+    //     // Whitelist OpenSea proxy contract for easy trading.
+    //     ProxyRegistry proxyRegistry = ProxyRegistry(proxyRegistryAddress);
+    //     if (address(proxyRegistry.proxies(_owner)) == _operator) {
+    //         return true;
+    //     }
+
+    //     return ERC721.isApprovedForAll(_owner, _operator);
+    // }
 }

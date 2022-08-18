@@ -30,6 +30,11 @@ describe("Africarare Marketplace", () => {
   let bidder: Signer;
   let payableToken: IERC20;
   const offerPrice = 1; //1ETH
+
+  // rinkeby
+  // let proxyRegistryAddress = "0x1E525EEAF261cA41b809884CBDE9DD9E1619573A";
+    // mainnet
+    // let proxyRegistryAddress = "0xa5409ec958c83c3f309868babaca7c86dcb077c1";
   logger.info("Test suite started")
   logger.info("Offer price for testing is 1 ETH, in wei is: " + toWei(offerPrice))
 

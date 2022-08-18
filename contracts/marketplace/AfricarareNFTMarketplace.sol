@@ -14,7 +14,6 @@
  * @dev Smart contract for Africarare's Marketplace
  */
 
-
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.7;
 
@@ -158,6 +157,17 @@ contract AfricarareNFTMarketplace is
             "invalid pay token"
         );
         _;
+    }
+
+    bytes4 private constant INTERFACE_ID_ERC721 = 0x80ac58cd;
+    bytes4 private constant INTERFACE_ID_ERC1155 = 0xd9b67a26;
+
+    function _supportERC721(address _nftAddress) private view returns (bool) {
+        return IERC165(_nftAddress).supportsInterface(INTERFACE_ID_ERC721);
+    }
+
+    function _supportERC1155(address _nftAddress) private view returns (bool) {
+        return IERC165(_nftAddress).supportsInterface(INTERFACE_ID_ERC1155);
     }
 
     //@TODO: Remove this function in plate of inheriting this function from OZ
