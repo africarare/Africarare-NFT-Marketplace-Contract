@@ -188,7 +188,11 @@ contract AfricarareNFTMarketplace is
         ListNFT memory listedNFT = listNfts[_nftAddress][_tokenId];
         require(listedNFT.seller == msg.sender, "not listed owner");
         delete listNfts[_nftAddress][_tokenId];
-        IERC721(_nftAddress).safeTransferFrom(address(this), msg.sender, _tokenId);
+        IERC721(_nftAddress).safeTransferFrom(
+            address(this),
+            msg.sender,
+            _tokenId
+        );
     }
 
     // @notice: Buy listed NFT
@@ -426,13 +430,20 @@ contract AfricarareNFTMarketplace is
     {
         AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
         require(auction.creator == msg.sender, "not auction creator");
+        // solhint-disable-next-line not-rely-on-time
         require(block.timestamp < auction.startTime, "auction already started");
         require(auction.lastBidder == address(0), "already have bidder");
 
         IERC721 nft = IERC721(_nftAddress);
         delete auctionNfts[_nftAddress][_tokenId];
         nft.safeTransferFrom(address(this), msg.sender, _tokenId);
-        emit CancelledAuction(_nftAddress, _tokenId, block.timestamp, msg.sender);
+        emit CancelledAuction(
+            _nftAddress,
+            _tokenId,
+            // solhint-disable-next-line not-rely-on-time
+            block.timestamp,
+            msg.sender
+        );
     }
 
     // @notice Bid place auction
@@ -442,10 +453,12 @@ contract AfricarareNFTMarketplace is
         uint256 _bidPrice
     ) external isAuction(_nftAddress, _tokenId) {
         require(
+            // solhint-disable-next-line not-rely-on-time
             block.timestamp >= auctionNfts[_nftAddress][_tokenId].startTime,
             "auction not start"
         );
         require(
+            // solhint-disable-next-line not-rely-on-time
             block.timestamp <= auctionNfts[_nftAddress][_tokenId].endTime,
             "auction ended"
         );
@@ -471,12 +484,21 @@ contract AfricarareNFTMarketplace is
             payToken.safeTransfer(lastBidder, lastBidPrice);
         }
 
-        emit PlacedBid(_nftAddress, _tokenId, auction.payToken, _bidPrice, msg.sender);
+        emit PlacedBid(
+            _nftAddress,
+            _tokenId,
+            auction.payToken,
+            _bidPrice,
+            msg.sender
+        );
     }
 
     // @notice Result auction, can call by auction creator, highest bidder, or marketplace owner only!
     function resultAuction(address _nftAddress, uint256 _tokenId) external {
-        require(!auctionNfts[_nftAddress][_tokenId].success, "already resulted");
+        require(
+            !auctionNfts[_nftAddress][_tokenId].success,
+            "already resulted"
+        );
         require(
             msg.sender == owner() ||
                 msg.sender == auctionNfts[_nftAddress][_tokenId].creator ||
@@ -484,6 +506,7 @@ contract AfricarareNFTMarketplace is
             "not creator, winner, or owner"
         );
         require(
+            // solhint-disable-next-line not-rely-on-time
             block.timestamp > auctionNfts[_nftAddress][_tokenId].endTime,
             "auction not ended"
         );

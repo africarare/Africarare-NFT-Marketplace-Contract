@@ -38,7 +38,11 @@ contract AfricarareNFTFactory {
         emit CreatedNFTCollection(msg.sender, address(nft), _name, _symbol);
     }
 
-    function getOwnCollections(address sender) external view returns (address[] memory) {
+    function getOwnCollections(address sender)
+        external
+        view
+        returns (address[] memory)
+    {
         return nfts[sender];
     }
 

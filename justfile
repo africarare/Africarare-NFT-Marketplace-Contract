@@ -41,23 +41,24 @@ display:
 install *PACKAGES:
    @npm install {{PACKAGES}}
 compile:
-	npx hardhat compile
+	@npm run compile
 deploy-localhost:
-	npx hardhat run scripts/deploy.ts --network localhost
+	@npm run deploy-localhost
 deploy-testnet:
-	npx hardhat run scripts/deploy.ts --network goerli
+	@npm run deploy-testnet
 verify-testnet:
-	npx hardhat run scripts/verify.ts --network goerli
+	@npm run verify-testnet
 test:
-	npx hardhat test && npx hardhat coverage && just print-gas-usage
-node:
-	npx hardhat node
+	@npm run test
+lint:
+	@npm run lint
+start-local-blockchain:
+	@npm run node
 format:
-	npx prettier --write 'contracts/**/*.sol'
+	@npm run format
 audit:
-	npx hardhat audit
+	@npm run audit
 print-audit:
-	cat ./reports/slither-security-audit.md
+	@npm run print-audit
 print-gas-usage:
-	cat ./reports/hardhat-gas-usage-report.md
-
+	@npm run print-gas-usage
