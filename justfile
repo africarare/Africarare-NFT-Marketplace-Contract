@@ -49,7 +49,7 @@ deploy-testnet:
 verify-testnet:
 	npx hardhat run scripts/verify.ts --network goerli
 test:
-	npx hardhat test && just print-gas-usage && npx nyc hardhat coverage
+	npx hardhat test && npx hardhat coverage && just print-gas-usage
 node:
 	npx hardhat node
 format:
@@ -57,7 +57,7 @@ format:
 audit:
 	npx hardhat audit
 print-audit:
-	cat ./audit/audit.md
+	cat ./reports/slither-security-audit.md
 print-gas-usage:
-	cat gasUsageReport.md
+	cat ./reports/hardhat-gas-usage-report.md
 

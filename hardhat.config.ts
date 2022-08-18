@@ -43,7 +43,7 @@ const config: HardhatUserConfig = {
         settings: {
           optimizer: {
             enabled: true,
-            runs: 2000,
+            runs: 200,
           },
         },
       },
@@ -57,7 +57,7 @@ const config: HardhatUserConfig = {
       },
     },
     coverage: {
-      url: "http://127.0.0.1:8555", // Coverage launches its own ganache-cli client
+      url: "http://127.0.0.1:8545", // Coverage launches its own client
     },
     ropsten: {
       url: process.env.ROPSTEN_RPC_URL || defaultPrivateKey,
@@ -111,8 +111,8 @@ const config: HardhatUserConfig = {
     currency: "USD",
     enabled: process.env.REPORT_GAS ? true : false,
     excludeContracts: [],
-    src: "./contracts",
-    outputFile: "./gasUsageReport.md",
+    src: "./contracts/*",
+    outputFile: "./reports/hardhat-gas-usage-report.md",
     token: process.env.REPORT_GAS ? "ETH" : undefined,
   },
   etherscan: {
