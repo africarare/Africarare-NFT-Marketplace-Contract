@@ -12,6 +12,7 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./interfaces/IAfricarareNFTFactory.sol";
 import "./interfaces/IAfricarareNFT.sol";
 import "./utils/errors.sol";
+import "./structures/structs.sol";
 
 /* Africarare NFT Marketplace
     List NFT,
@@ -30,38 +31,6 @@ contract AfricarareNFTMarketplace is IERC721Receiver, Ownable, ReentrancyGuard {
     uint256 private platformFee;
     address private feeRecipient;
 
-    struct ListNFT {
-        address nft;
-        uint256 tokenId;
-        address seller;
-        address payToken;
-        uint256 price;
-        bool sold;
-    }
-
-    struct OfferNFT {
-        address nft;
-        uint256 tokenId;
-        address offerer;
-        address payToken;
-        uint256 offerPrice;
-        bool accepted;
-    }
-
-    struct AuctionNFT {
-        address nft;
-        uint256 tokenId;
-        address creator;
-        address payToken;
-        uint256 initialPrice;
-        uint256 minBid;
-        uint256 startTime;
-        uint256 endTime;
-        address lastBidder;
-        uint256 highestBid;
-        address winner;
-        bool success;
-    }
 
     mapping(address => bool) private payableToken;
     address[] private tokens;
