@@ -24,8 +24,10 @@ contract AfricarareNFT is
 
     uint256 private royaltyFee;
     address private royaltyRecipient;
+    bool public lock;
 
     error ZeroAddress();
+    error isLockedContract();
     error RoyaltyMaxExceeded(uint256 given, uint256 max);
 
     constructor(
@@ -56,6 +58,15 @@ contract AfricarareNFT is
         _;
     }
 
+    function _notLocked(bool _lock) internal pure {
+        if (_lock) revert isLockedContract();
+    }
+
+    modifier notLocked(bool _lock) {
+        _notLocked(_lock);
+        _;
+    }
+
     function safeMint(address to, string memory uri) public onlyOwner {
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
@@ -66,6 +77,7 @@ contract AfricarareNFT is
     function _burn(uint256 tokenId)
         internal
         override(ERC721, ERC721URIStorage)
+        notLocked(lock)
     {
         super._burn(tokenId);
     }
@@ -103,6 +115,9 @@ contract AfricarareNFT is
         super._beforeTokenTransfer(from, to, tokenId);
     }
 
+    function lockContract() external onlyOwner {
+        lock = true;
+    }
     /**
      * Override isApprovedForAll to whitelist user's OpenSea proxy accounts to enable gas-free listings.
      */
