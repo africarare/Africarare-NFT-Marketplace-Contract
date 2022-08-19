@@ -550,8 +550,8 @@ contract AfricarareNFTMarketplace is
             "NotAllowedToCallAuctionResult"
         );
         require(
-            // solhint-disable-next-line not-rely-on-time
             //TODO: Move to storage contract
+            // solhint-disable-next-line not-rely-on-time
             block.timestamp > auctionNfts[_nftAddress][_tokenId].endTime,
             "AuctionIsNotComplete"
         );
