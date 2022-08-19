@@ -52,7 +52,8 @@ test:
 	@npm run test
 lint:
 	@npm run lint
-start-local-blockchain:
+start:
+	@#Start a local hardhat blockchain instance localhost:8545
 	@npm run node
 format:
 	@npm run format
