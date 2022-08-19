@@ -29,25 +29,37 @@ describe("Africarare Marketplace", () => {
   let offerer: Signer;
   let bidder: Signer;
   let payableToken: IERC20;
-  const offerPrice = 1; //1ETH
+  const creatorRoyaltyPercentage = 999; //9.99%
+  const platformFee = 999; // 9.99%
+  const testPurchaserWalletBalance = 10; // 10 ETH
+  const offerPrice = 1.1; //1ETH
+  const listPrice = 1; //1ETH
+  const initialBidPrice = 1.05; //1.05ETH
+  const winningBidPrice = 1.1; //1.1ETH
+  const minimumBidPrice = 0.01; //0.01ETH, how much extra you must bid i.e 0.01ETH higher than last time
 
   // rinkeby
   // let proxyRegistryAddress = "0x1E525EEAF261cA41b809884CBDE9DD9E1619573A";
     // mainnet
     // let proxyRegistryAddress = "0xa5409ec958c83c3f309868babaca7c86dcb077c1";
   logger.info("Test suite started")
+  logger.info("Platform fee is 9.99% in integer is: " + platformFee)
+  logger.info("Creator royalty percentage is 9.99% in integer is: " + creatorRoyaltyPercentage)
   logger.info("Offer price for testing is 1 ETH, in wei is: " + toWei(offerPrice))
+  logger.info("Test list price is 1 ETH, in wei is: " + toWei(listPrice))
+  logger.info("Test first bid price is 1.05 ETH, in wei is: " + toWei(initialBidPrice))
+  logger.info("Test winning bid price is 1.05 ETH, in wei is: " + toWei(winningBidPrice))
+  logger.info("Test min bid price is 0.05 ETH, in wei is: " + toWei(minimumBidPrice))
+  logger.info("Test min bid price is 0.05 ETH, in wei is: " + toWei(minimumBidPrice))
 
   before(async () => {
     [owner, creator, buyer, offerer, bidder] = await ethers.getSigners();
     const Factory = new AfricarareNFTFactory__factory(owner);
     factory = await Factory.deploy();
     await factory.deployed();
-    expect(factory.address).not.eq(null, "Deploy factory is failed.");
+    expect(factory.address).not.eq(null, "Deploying factory failed.");
 
     const Marketplace = new AfricarareNFTMarketplace__factory(owner);
-    // const platformFee = BigNumber.from(10; // 10%
-    const platformFee = 10; // 10%
 
     const feeRecipient = await owner.getAddress();
     marketplace = await Marketplace.deploy(
@@ -56,29 +68,32 @@ describe("Africarare Marketplace", () => {
       factory.address
     );
     await marketplace.deployed();
-    expect(marketplace.address).not.eq(null, "Deploy marketplace is failed.");
+    expect(marketplace.address).not.eq(null, "Deploying marketplace failed");
 
     const Token = new Token__factory(owner);
     payableToken = await Token.deploy("Africarare Token", "UBU");
     await payableToken.deployed();
     expect(payableToken.address).not.eq(
       null,
-      "Deploy test payable token is failed."
+      "Deploy test payable token has failed."
     );
 
     await marketplace.connect(owner).addPayableToken(payableToken.address);
     expect(
       await marketplace.checkIsPayableToken(payableToken.address),
-      "Add payable token is failed."
+      "Add payable token has failed."
     ).to.true;
 
-    // Transfer payable token to tester
+    // Transfer payable token to testers
     const buyerAddress = await buyer.getAddress();
     const offererAddress = await offerer.getAddress();
-    await payableToken.connect(owner).transfer(buyerAddress, toWei(1000000));
-    expect(await payableToken.balanceOf(buyerAddress)).to.eq(toWei(1000000));
-    await payableToken.connect(owner).transfer(offererAddress, toWei(1000000));
-    expect(await payableToken.balanceOf(offererAddress)).to.eq(toWei(1000000));
+    const bidderAddress = await bidder.getAddress();
+    await payableToken.connect(owner).transfer(buyerAddress, toWei(testPurchaserWalletBalance));
+    expect(await payableToken.balanceOf(buyerAddress)).to.eq(toWei(testPurchaserWalletBalance));
+    await payableToken.connect(owner).transfer(offererAddress, toWei(testPurchaserWalletBalance));
+    expect(await payableToken.balanceOf(offererAddress)).to.eq(toWei(testPurchaserWalletBalance));
+    await payableToken.connect(owner).transfer(bidderAddress, toWei(testPurchaserWalletBalance));
+    expect(await payableToken.balanceOf(bidderAddress)).to.eq(toWei(testPurchaserWalletBalance));
 
     const royaltyRecipient = await creator.getAddress();
     const tx = await factory
@@ -86,7 +101,7 @@ describe("Africarare Marketplace", () => {
       .createNFTCollection(
         "Africarare Collection",
         "AFRICARARE",
-        BigNumber.from(10 * 100),
+        creatorRoyaltyPercentage,
         royaltyRecipient
       );
     const receipt = await tx.wait();
@@ -99,7 +114,7 @@ describe("Africarare Marketplace", () => {
       AfricarareNFT__factory.abi,
       creator
     ) as AfricarareNFT;
-    expect(nft.address).not.eq(null, "Create collection is failed.");
+    expect(nft.address).not.eq(null, "Create collection has failed.");
   });
 
   describe("List and Buy", () => {
@@ -108,7 +123,7 @@ describe("Africarare Marketplace", () => {
       const to = await creator.getAddress();
       const uri = "africarare.io";
       await nft.connect(creator).safeMint(to, uri);
-      expect(await nft.ownerOf(tokenId)).to.eq(to, "Mint NFT is failed.");
+      expect(await nft.ownerOf(tokenId)).to.eq(to, "Mint NFT has failed.");
     });
 
     it("Creator should list NFT on the marketplace", async () => {
@@ -116,22 +131,22 @@ describe("Africarare Marketplace", () => {
 
       const tx = await marketplace
         .connect(creator)
-        .listNft(nft.address, tokenId, payableToken.address, toWei(100000));
+        .listNft(nft.address, tokenId, payableToken.address, toWei(listPrice));
       const receipt = await tx.wait();
       const events = receipt.events?.filter(
         (e: any) => e.event == "ListedNFT"
       ) as any;
       const eventNFT = events[0].args.nft;
       const eventTokenId = events[0].args.tokenId;
-      expect(eventNFT).eq(nft.address, "NFT is wrong.");
-      expect(eventTokenId).eq(tokenId, "TokenId is wrong.");
+      expect(eventNFT).eq(nft.address, "NFT is incorrect.");
+      expect(eventTokenId).eq(tokenId, "TokenId is incorrect.");
     });
 
     it("Creator should cancel listed item", async () => {
       await marketplace.connect(creator).cancelListedNFT(nft.address, tokenId);
       expect(await nft.ownerOf(tokenId)).eq(
         await creator.getAddress(),
-        "Cancel listed item is failed."
+        "Cancel listed item has failed."
       );
     });
 
@@ -140,29 +155,29 @@ describe("Africarare Marketplace", () => {
 
       const tx = await marketplace
         .connect(creator)
-        .listNft(nft.address, tokenId, payableToken.address, toWei(100000));
+        .listNft(nft.address, tokenId, payableToken.address, toWei(listPrice));
       const receipt = await tx.wait();
       const events = receipt.events?.filter(
         (e: any) => e.event == "ListedNFT"
       ) as any;
       const eventNFT = events[0].args.nft;
       const eventTokenId = events[0].args.tokenId;
-      expect(eventNFT).eq(nft.address, "NFT is wrong.");
-      expect(eventTokenId).eq(tokenId, "TokenId is wrong.");
+      expect(eventNFT).eq(nft.address, "NFT address is incorrect.");
+      expect(eventTokenId).eq(tokenId, "TokenId is incorrect.");
     });
 
     it("Buyer should buy listed NFT", async () => {
       const tokenId = 0;
-      const buyPrice = 100001;
+      // const buyPrice = 100001;
       await payableToken
         .connect(buyer)
-        .approve(marketplace.address, toWei(buyPrice));
+        .approve(marketplace.address, toWei(listPrice));
       await marketplace
         .connect(buyer)
-        .buyNFT(nft.address, tokenId, payableToken.address, toWei(buyPrice));
+        .buyNFT(nft.address, tokenId, payableToken.address, toWei(listPrice));
       expect(await nft.ownerOf(tokenId)).eq(
         await buyer.getAddress(),
-        "Buy NFT is failed."
+        "Buy NFT has failed."
       );
     });
   });
@@ -173,7 +188,7 @@ describe("Africarare Marketplace", () => {
       const to = await creator.getAddress();
       const uri = "africarare.io";
       await nft.connect(creator).safeMint(to, uri);
-      expect(await nft.ownerOf(tokenId)).to.eq(to, "Mint NFT is failed.");
+      expect(await nft.ownerOf(tokenId)).to.eq(to, "Mint NFT has failed.");
     });
 
     it("Creator should list NFT on the marketplace", async () => {
@@ -181,18 +196,18 @@ describe("Africarare Marketplace", () => {
 
       const tx = await marketplace
         .connect(creator)
-        .listNft(nft.address, tokenId, payableToken.address, toWei(100000));
+        .listNft(nft.address, tokenId, payableToken.address, toWei(listPrice));
       const receipt = await tx.wait();
       const events = receipt.events?.filter(
         (e: any) => e.event == "ListedNFT"
       ) as any;
       const eventNFT = events[0].args.nft;
       const eventTokenId = events[0].args.tokenId;
-      expect(eventNFT).eq(nft.address, "NFT is wrong.");
-      expect(eventTokenId).eq(tokenId, "TokenId is wrong.");
+      expect(eventNFT).eq(nft.address, "NFT is incorrect.");
+      expect(eventTokenId).eq(tokenId, "TokenId is incorrect.");
     });
 
-    it("Buyer should offer NFT", async () => {
+    it("Buyer should offer an amount of ether for an NFT", async () => {
       await payableToken
         .connect(buyer)
         .approve(marketplace.address, toWei(offerPrice));
@@ -213,10 +228,10 @@ describe("Africarare Marketplace", () => {
       const eventTokenId = events[0].args.tokenId;
       expect(eventOfferer).eq(
         await buyer.getAddress(),
-        "Offerer address is wrong."
+        "Offerer address is incorrect."
       );
-      expect(eventNFT).eq(nft.address, "NFT address is wrong.");
-      expect(eventTokenId).eq(tokenId, "TokenId is wrong.");
+      expect(eventNFT).eq(nft.address, "NFT address is incorrect.");
+      expect(eventTokenId).eq(tokenId, "TokenId is incorrect.");
     });
 
     it("Buyer should cancel offer", async () => {
@@ -232,10 +247,10 @@ describe("Africarare Marketplace", () => {
       const eventOfferer = events[0].args.offerer;
       expect(eventOfferer).eq(
         await buyer.getAddress(),
-        "Offerer address is wrong."
+        "Offerer address is incorrect."
       );
-      expect(eventNFT).eq(nft.address, "NFT address is wrong.");
-      expect(eventTokenId).eq(tokenId, "TokenId is wrong.");
+      expect(eventNFT).eq(nft.address, "NFT address is incorrect.");
+      expect(eventTokenId).eq(tokenId, "TokenId is incorrect.");
     });
 
     it("Offerer should offer NFT", async () => {
@@ -259,10 +274,10 @@ describe("Africarare Marketplace", () => {
       const eventTokenId = events[0].args.tokenId;
       expect(eventOfferer).eq(
         await offerer.getAddress(),
-        "Offerer address is wrong."
+        "Offerer address is incorrect."
       );
-      expect(eventNFT).eq(nft.address, "NFT address is wrong.");
-      expect(eventTokenId).eq(tokenId, "TokenId is wrong.");
+      expect(eventNFT).eq(nft.address, "NFT address is incorrect.");
+      expect(eventTokenId).eq(tokenId, "TokenId is incorrect.");
     });
 
     it("Creator should accept offer", async () => {
@@ -279,12 +294,12 @@ describe("Africarare Marketplace", () => {
       const to = await creator.getAddress();
       const uri = "africarare.io";
       await nft.connect(creator).safeMint(to, uri);
-      expect(await nft.ownerOf(tokenId)).to.eq(to, "Mint NFT is failed.");
+      expect(await nft.ownerOf(tokenId)).to.eq(to, "Mint NFT has failed.");
     });
 
     it("Creator should create auction", async () => {
-      const price = 10000;
-      const minBid = 500;
+      // const price = 10000;
+      // const minBid = 500;
       const startTime = Date.now() + 60 * 60 * 24; // a day
       const endTime = Date.now() + 60 * 60 * 24 * 7; // 7 days
       await nft.connect(creator).approve(marketplace.address, tokenId);
@@ -294,8 +309,8 @@ describe("Africarare Marketplace", () => {
           nft.address,
           tokenId,
           payableToken.address,
-          toWei(price),
-          toWei(minBid),
+          toWei(listPrice),
+          toWei(minimumBidPrice),
           BigNumber.from(startTime),
           BigNumber.from(endTime)
         );
@@ -306,25 +321,25 @@ describe("Africarare Marketplace", () => {
       const eventNFT = events[0].args.nft;
       const eventTokenId = events[0].args.tokenId;
       const eventCreator = events[0].args.creator;
-      expect(eventNFT).eq(nft.address, "NFT address is wrong.");
+      expect(eventNFT).eq(nft.address, "NFT address is incorrect.");
       expect(eventCreator).eq(
         await creator.getAddress(),
-        "Creator address is wrong."
+        "Creator address is incorrect."
       );
-      expect(eventTokenId).eq(tokenId, "TokenId is wrong.");
+      expect(eventTokenId).eq(tokenId, "TokenId is incorrect.");
     });
 
     it("Creator should cancel auction", async () => {
       await marketplace.connect(creator).cancelAuction(nft.address, tokenId);
       expect(await nft.ownerOf(tokenId)).eq(
         await creator.getAddress(),
-        "Cancel is failed."
+        "Cancel has failed."
       );
     });
 
     it("Creator should create auction again", async () => {
-      const price = 10000;
-      const minBid = 500;
+      // const price = 10000;
+      // const minBid = 500;
       const startTime = 0; // now
       const endTime = Date.now() + 60 * 60 * 24 * 7; // 7 days
       await nft.connect(creator).approve(marketplace.address, tokenId);
@@ -334,8 +349,8 @@ describe("Africarare Marketplace", () => {
           nft.address,
           tokenId,
           payableToken.address,
-          toWei(price),
-          toWei(minBid),
+          toWei(listPrice),
+          toWei(minimumBidPrice),
           BigNumber.from(startTime),
           BigNumber.from(endTime)
         );
@@ -346,22 +361,22 @@ describe("Africarare Marketplace", () => {
       const eventNFT = events[0].args.nft;
       const eventTokenId = events[0].args.tokenId;
       const eventCreator = events[0].args.creator;
-      expect(eventNFT).eq(nft.address, "NFT address is wrong.");
+      expect(eventNFT).eq(nft.address, "NFT address is incorrect.");
       expect(eventCreator).eq(
         await creator.getAddress(),
-        "Creator address is wrong."
+        "Creator address is incorrect."
       );
-      expect(eventTokenId).eq(tokenId, "TokenId is wrong.");
+      expect(eventTokenId).eq(tokenId, "TokenId is incorrect.");
     });
 
-    it("Buyer should bid place", async () => {
-      const bidPrice = 10500;
+    it("Bidder 1 should bid place", async () => {
+      // const initialBidPrice = 10500;
       await payableToken
         .connect(buyer)
-        .approve(marketplace.address, toWei(bidPrice));
+        .approve(marketplace.address, toWei(initialBidPrice));
       const tx = await marketplace
         .connect(buyer)
-        .bidPlace(nft.address, tokenId, toWei(bidPrice));
+        .bidPlace(nft.address, tokenId, toWei(initialBidPrice));
       const receipt = await tx.wait();
       const events = receipt.events?.filter(
         (e: any) => e.event == "PlacedBid"
@@ -369,22 +384,22 @@ describe("Africarare Marketplace", () => {
       const eventNFT = events[0].args.nft;
       const eventTokenId = events[0].args.tokenId;
       const eventBidder = events[0].args.bidder;
-      expect(eventNFT).eq(nft.address, "NFT address is wrong.");
+      expect(eventNFT).eq(nft.address, "NFT address is incorrect.");
       expect(eventBidder).eq(
         await buyer.getAddress(),
-        "Bidder address is wrong."
+        "Bidder address is incorrect."
       );
-      expect(eventTokenId).eq(tokenId, "TokenId is wrong.");
+      expect(eventTokenId).eq(tokenId, "TokenId is incorrect.");
     });
 
-    it("Offerer should bid place", async () => {
-      const bidPrice = 11000;
+    it("Bidder 2 should place new highest bid", async () => {
+      // const initialBidPrice = 11000;
       await payableToken
-        .connect(offerer)
-        .approve(marketplace.address, toWei(bidPrice));
+        .connect(bidder)
+        .approve(marketplace.address, toWei(winningBidPrice));
       const tx = await marketplace
-        .connect(offerer)
-        .bidPlace(nft.address, tokenId, toWei(bidPrice));
+        .connect(bidder)
+        .bidPlace(nft.address, tokenId, toWei(winningBidPrice));
       const receipt = await tx.wait();
       const events = receipt.events?.filter(
         (e: any) => e.event == "PlacedBid"
@@ -392,15 +407,15 @@ describe("Africarare Marketplace", () => {
       const eventNFT = events[0].args.nft;
       const eventTokenId = events[0].args.tokenId;
       const eventBidder = events[0].args.bidder;
-      expect(eventNFT).eq(nft.address, "NFT address is wrong.");
+      expect(eventNFT).eq(nft.address, "NFT address is incorrect.");
       expect(eventBidder).eq(
-        await offerer.getAddress(),
-        "Bidder address is wrong."
+        await bidder.getAddress(),
+        "Bidder address is incorrect."
       );
-      expect(eventTokenId).eq(tokenId, "TokenId is wrong.");
+      expect(eventTokenId).eq(tokenId, "TokenId is incorrect.");
     });
 
-    it("Marketplace owner should call result auction", async () => {
+    it("Marketplace owner should call result auction with bidder 2 as winner", async () => {
       try {
         const tx = await marketplace
           .connect(owner)
@@ -413,19 +428,19 @@ describe("Africarare Marketplace", () => {
         const eventTokenId = events[0].args.tokenId;
         const eventWinner = events[0].args.winner;
         const eventCaller = events[0].args.caller;
-        expect(eventNFT).eq(nft.address, "NFT address is wrong.");
-        expect(eventTokenId).eq(tokenId, "TokenId is wrong.");
+        expect(eventNFT).eq(nft.address, "NFT address is incorrect.");
+        expect(eventTokenId).eq(tokenId, "TokenId is incorrect.");
         expect(eventWinner).eq(
-          await offerer.getAddress(),
-          "Winner address is wrong."
+          await bidder.getAddress(),
+          "Winner address is incorrect."
         );
         expect(eventCaller).eq(
           await owner.getAddress(),
-          "Caller address is wrong."
+          "Caller address is incorrect."
         );
         expect(await nft.ownerOf(tokenId)).eq(
           eventWinner,
-          "NFT owner is wrong."
+          "NFT owner is incorrect."
         );
       } catch (error) {}
     });

@@ -25,6 +25,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 // import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "hardhat/console.sol";
 
 import "./interfaces/IAfricarareNFTFactory.sol";
 import "./interfaces/IAfricarareNFT.sol";
@@ -44,11 +45,12 @@ import {MarketplaceEvents} from "./events/events.sol";
     @TODO: Support ERC1155,
     @TODO: Store assets in storage contract,
     @TODO: Remove require statements for custom errs,
-    @TODO: Change fee logic to work in percentages 0-100,
-    @TODO: end to end unit test
+    @TODO: end to end unit test all custom errors and exceptions
     @TODO: clean up offer, list logic
     @TODO: add timestamps to structs and events
     @TODO: use safe 1155, 721 interfaces like safe erc20?
+    @TODO: remove payable tokens as well as add them
+    @TODO: test fee logic math is correctly deducting right amounts
 */
 
 contract AfricarareNFTMarketplace is
@@ -86,8 +88,8 @@ contract AfricarareNFTMarketplace is
         address _feeRecipient,
         IAfricarareNFTFactory _africarareNFTFactory
     ) {
-        if (_platformFee > 10000)
-            revert PlatformFeeExceedLimit(_platformFee, 10000);
+        if (_platformFee > 1000)
+            revert PlatformFeeExceedLimit(_platformFee, 1000);
         platformFee = _platformFee;
         feeRecipient = _feeRecipient;
         africarareNFTFactory = _africarareNFTFactory;
@@ -226,7 +228,7 @@ contract AfricarareNFTMarketplace is
         uint256 royaltyFee = nft.getRoyaltyFee();
 
         if (royaltyFee > 0) {
-            uint256 royaltyTotal = calculateRoyalty(royaltyFee, _price);
+            uint256 royaltyTotal = calculateRoyaltyFee(royaltyFee, _price);
 
             // Transfer royalty fee to collection owner
             IERC20(listedNft.payToken).safeTransferFrom(
@@ -276,6 +278,7 @@ contract AfricarareNFTMarketplace is
         uint256 _offerPrice
     ) external isListedNFT(_nftAddress, _tokenId) {
         require(_offerPrice > 0, "price can not 0");
+        console.log(_offerPrice);
 
         ListNFT memory nft = listNfts[_nftAddress][_tokenId];
         IERC20(nft.payToken).safeTransferFrom(
@@ -354,7 +357,7 @@ contract AfricarareNFTMarketplace is
         IERC20 payToken = IERC20(offer.payToken);
 
         // Transfer royalty fee to collection owner
-        uint256 royaltyTotal = calculateRoyalty(royaltyFee, offerPrice);
+        uint256 royaltyTotal = calculateRoyaltyFee(royaltyFee, offerPrice);
         if (royaltyTotal > 0) {
             payToken.safeTransfer(royaltyRecipient, royaltyTotal);
         }
@@ -470,6 +473,7 @@ contract AfricarareNFTMarketplace is
             block.timestamp <= auctionNfts[_nftAddress][_tokenId].endTime,
             "auction ended"
         );
+        console.log(auctionNfts[_nftAddress][_tokenId].highestBid + auctionNfts[_nftAddress][_tokenId].minBid);
         require(
             _bidPrice >=
                 auctionNfts[_nftAddress][_tokenId].highestBid +
@@ -534,7 +538,7 @@ contract AfricarareNFTMarketplace is
         uint256 totalPrice = highestBid;
 
         if (royaltyFee > 0) {
-            uint256 royaltyTotal = calculateRoyalty(royaltyFee, highestBid);
+            uint256 royaltyTotal = calculateRoyaltyFee(royaltyFee, highestBid);
             // Transfer royalty fee to collection owner
             payToken.safeTransfer(royaltyRecipient, royaltyTotal);
             totalPrice -= royaltyTotal;
@@ -572,7 +576,7 @@ contract AfricarareNFTMarketplace is
         return (_price * platformFee) / 10000;
     }
 
-    function calculateRoyalty(uint256 _royalty, uint256 _price)
+    function calculateRoyaltyFee(uint256 _royalty, uint256 _price)
         public
         pure
         returns (uint256)
@@ -608,7 +612,7 @@ contract AfricarareNFTMarketplace is
     }
 
     function updatePlatformFee(uint256 _platformFee) external onlyOwner {
-        require(_platformFee <= 10000, "can't more than 10 percent");
+        require(_platformFee <= 10, "can't more than 10 percent");
         platformFee = _platformFee;
     }
 

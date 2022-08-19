@@ -50,7 +50,7 @@ contract AfricarareNFT is
     }
 
     function _notExceedMaxRoyalty(uint256 _royaltyFee) internal pure {
-        if (_royaltyFee >= 10000) revert RoyaltyMaxExceeded(_royaltyFee, 10000);
+        if (_royaltyFee > 1000) revert RoyaltyMaxExceeded(_royaltyFee, 1000);
     }
 
     modifier notExceedMaxRoyalty(uint256 _royaltyFee) {
