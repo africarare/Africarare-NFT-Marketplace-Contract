@@ -40,7 +40,7 @@ contract TokenStorage is AccessControl {
         uint256 timestamp;
     }
 
-        struct AuctionToken {
+    struct AuctionToken {
         address nftAddress;
         uint256 tokenId;
         address creator;
@@ -54,7 +54,6 @@ contract TokenStorage is AccessControl {
         address winner;
         bool success;
     }
-
 
     address public feeAddress;
     uint256 public platformFee;
