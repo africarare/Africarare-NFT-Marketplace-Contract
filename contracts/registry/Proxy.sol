@@ -2,6 +2,7 @@
 // Author: Africarare
 pragma solidity ^0.8.7;
 
+//solhint-disable-next-line no-empty-blocks
 contract OwnableDelegateProxy {}
 
 contract ProxyRegistry {
