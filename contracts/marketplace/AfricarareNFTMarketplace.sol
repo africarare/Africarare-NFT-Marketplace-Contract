@@ -97,10 +97,13 @@ contract AfricarareNFTMarketplace is
     }
 
     modifier isAfricarareNFT(address _nftAddress) {
-        require(
-            africarareNFTFactory.isAfricarareNFT(_nftAddress),
-            "NotAfricarareNFT"
-        );
+        // require(
+        //     africarareNFTFactory.isAfricarareNFT(_nftAddress),
+        //     "NotAfricarareNFT"
+        // );
+        if(!africarareNFTFactory.isAfricarareNFT(_nftAddress)) {
+            revert NotAfricarareNFT(_nftAddress);
+        }
         _;
     }
 
@@ -124,30 +127,39 @@ contract AfricarareNFTMarketplace is
     modifier isNotListedNFT(address _nftAddress, uint256 _tokenId) {
         //TODO: Move to storage contract
         ListNFT memory listedNFT = listNfts[_nftAddress][_tokenId];
-        require(
-            listedNFT.seller == address(0) || listedNFT.sold,
-            "ItemIsAlreadyListed"
-        );
+        // require(
+        //     listedNFT.seller == address(0) || listedNFT.sold,
+        //     "ItemIsAlreadyListed"
+        // );
+        if(listedNFT.seller == address(0) || listedNFT.sold) {
+            revert ItemIsAlreadyListed(_nftAddress, _tokenId);
+        }
         _;
     }
 
     modifier isAuction(address _nftAddress, uint256 _tokenId) {
         //TODO: Move to storage contract
         AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
-        require(
-            auction.nft != address(0) && !auction.success,
-            "ItemIsAlreadyAuctioned"
-        );
+        // require(
+        //     auction.nft != address(0) && !auction.success,
+        //     "ItemIsAlreadyAuctioned"
+        // );
+        if(auction.nft != address(0) && !auction.success) {
+            revert ItemIsAlreadyAuctioned(_nftAddress, _tokenId);
+        }
         _;
     }
 
     modifier isNotAuction(address _nftAddress, uint256 _tokenId) {
         //TODO: Move to storage contract
         AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
-        require(
-            auction.nft == address(0) || auction.success,
-            "ItemIsAlreadyAuctioned"
-        );
+        // require(
+        //     auction.nft == address(0) || auction.success,
+        //     "ItemIsAlreadyAuctioned"
+        // );
+        if(auction.nft == address(0) || auction.success) {
+            revert ItemIsAlreadyAuctioned(_nftAddress, _tokenId);
+        }
         _;
     }
 
@@ -158,19 +170,25 @@ contract AfricarareNFTMarketplace is
     ) {
         //TODO: Move to storage contract
         OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][_offerer];
-        require(
-            offer.offerPrice > 0 && offer.offerer != address(0),
-            "ItemIsNotOffered"
-        );
+        // require(
+        //     offer.offerPrice > 0 && offer.offerer != address(0),
+        //     "ItemIsNotOffered"
+        // );
+        if(offer.offerPrice > 0 && offer.offerer != address(0)) {
+            revert ItemIsNotOffered(_nftAddress, _tokenId);
+        }
         _;
     }
 
     modifier isPayableToken(address _payToken) {
-        require(
-            //TODO: Move to storage contract
-            _payToken != address(0) && payableToken[_payToken],
-            "NotValidPaymentToken"
-        );
+        // require(
+        //     TODO: Move to storage contract
+        //     _payToken != address(0) && payableToken[_payToken],
+        //     "NotValidPaymentToken"
+        // );
+        if(_payToken != address(0) && payableToken[_payToken]) {
+            revert NotValidPaymentToken(_payToken);
+        }
         _;
     }
 
@@ -182,7 +200,10 @@ contract AfricarareNFTMarketplace is
         uint256 _price
     ) external isAfricarareNFT(_nftAddress) isPayableToken(_payToken) {
         IERC721 nft = IERC721(_nftAddress);
-        require(nft.ownerOf(_tokenId) == msg.sender, "NotNftOwner");
+        //require(nft.ownerOf(_tokenId) == msg.sender, "NotNftOwner");
+        // if(nft.ownerOf(_tokenId) !== msg.sender) {
+        //     revert NotNftOwner(msg.sender ,_tokenId);
+        // }
         nft.safeTransferFrom(msg.sender, address(this), _tokenId);
 
         //TODO: Move to storage contract
@@ -205,7 +226,13 @@ contract AfricarareNFTMarketplace is
     {
         //TODO: Move to storage contract
         ListNFT memory listedNFT = listNfts[_nftAddress][_tokenId];
-        require(listedNFT.seller == msg.sender, "NotListedNftOwner");
+        //require(listedNFT.seller == msg.sender, "NotListedNftOwner");
+
+        // if(listedNFT.seller !== msg.sender) {
+        //     NotListedNftOwner(msg.sender)
+        // }
+
+
         //TODO: Move to storage contract
         delete listNfts[_nftAddress][_tokenId];
         IERC721(_nftAddress).safeTransferFrom(
