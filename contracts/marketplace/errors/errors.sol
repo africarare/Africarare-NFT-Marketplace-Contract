@@ -37,3 +37,4 @@ error NotAllowedToCallAuctionResult(
     address nftCreator,
     address auctionWinner
 );
+error PaymentTokenAlreadyAdded(address token);
