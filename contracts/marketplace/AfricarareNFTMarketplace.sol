@@ -111,7 +111,7 @@ contract AfricarareNFTMarketplace is
     function _isListedNFT(address _nftAddress, uint256 _tokenId) internal view {
         //TODO: Move to storage contract
         if (listNfts[_nftAddress][_tokenId].seller == address(0)) {
-            revert AddressIsZero(_nftAddress, _tokenId);
+            revert AddressIsZero(listNfts[_nftAddress][_tokenId].seller);
         }
         //TODO: Move to storage contract
         if (listNfts[_nftAddress][_tokenId].sold) {
@@ -174,7 +174,7 @@ contract AfricarareNFTMarketplace is
         //     offer.offerPrice > 0 && offer.offerer != address(0),
         //     "ItemIsNotOffered"
         // );
-        if(offer.offerPrice > 0 && offer.offerer != address(0)) {
+        if(offer.offerPrice <= 0 || offer.offerer == address(0)) {
             revert ItemIsNotOffered(_nftAddress, _tokenId);
         }
         _;
@@ -228,9 +228,9 @@ contract AfricarareNFTMarketplace is
         ListNFT memory listedNFT = listNfts[_nftAddress][_tokenId];
         //require(listedNFT.seller == msg.sender, "NotListedNftOwner");
 
-        // if(listedNFT.seller !== msg.sender) {
-        //     NotListedNftOwner(msg.sender)
-        // }
+        if(listedNFT.seller != msg.sender) {
+            revert NotListedNftOwner(msg.sender, listedNFT.seller);
+        }
 
 
         //TODO: Move to storage contract
@@ -264,7 +264,7 @@ contract AfricarareNFTMarketplace is
         if(listedNft.sold) {
             revert ItemIsSold(_nftAddress, _tokenId);
         }
-        
+
         //require(_price >= listedNft.price, "InsufficientBalance");
 
         if(!(_price >= listedNft.price)) {
@@ -417,7 +417,7 @@ contract AfricarareNFTMarketplace is
         //TODO: Move to storage contract
         ListNFT storage list = listNfts[offer.nft][offer.tokenId];
         // require(!list.sold, "ItemIsSold");
-        
+
         if(list.sold) {
             revert ItemIsSold(_nftAddress, _tokenId);
         }
@@ -488,7 +488,7 @@ contract AfricarareNFTMarketplace is
         // require(nft.ownerOf(_tokenId) == msg.sender, "NotNftOwner");
 
         if(nft.ownerOf(_tokenId) != msg.sender) {
-            revert NotNftOwner(msg.sender, nft.ownerOf(_tokenId));
+            revert NotNftOwner(msg.sender, _nftAddress);
         }
 
         // require(_endTime > _startTime, "NotValidAuctionDuration");
@@ -651,13 +651,13 @@ contract AfricarareNFTMarketplace is
                 msg.sender == auctionNfts[_nftAddress][_tokenId].lastBidder,
             "NotAllowedToCallAuctionResult"
         );
-        
-        // require(
-        //     //TODO: Move to storage contract
-        //     // solhint-disable-next-line not-rely-on-time
-        //     block.timestamp > auctionNfts[_nftAddress][_tokenId].endTime,
-        //     "AuctionIsNotComplete"
-        // );
+
+        require(
+            //TODO: Move to storage contract
+            // solhint-disable-next-line not-rely-on-time
+            block.timestamp > auctionNfts[_nftAddress][_tokenId].endTime,
+            "AuctionIsNotComplete"
+        );
 
         if(block.timestamp < auctionNfts[_nftAddress][_tokenId].endTime) {
             revert AuctionIsNotComplete(_nftAddress, _tokenId);
@@ -751,9 +751,9 @@ contract AfricarareNFTMarketplace is
     function addPayableToken(address _token) external onlyOwner {
         require(_token != address(0), "AddressIsZero");
 
-        // if(_token == address(0)) {
-        //     revert AddressIsZero(_nftAddress, _tokenId);
-        // }
+        if(_token == address(0)) {
+            revert AddressIsZero(_token);
+        }
         //TODO: Move to storage contract
         require(!payableToken[_token], "PaymentTokenAlreadyAdded");
 
@@ -777,10 +777,9 @@ contract AfricarareNFTMarketplace is
 
     function changeFeeRecipient(address _feeRecipient) external onlyOwner {
         require(_feeRecipient != address(0), "AddressIsZero");
-
-        // if(_feeRecipient == address(0)) {
-        //     revert AddressIsZero(_nftAddress, _tokenId);
-        // }
+        if(_feeRecipient == address(0)) {
+            revert AddressIsZero(_feeRecipient);
+        }
 
         feeRecipient = _feeRecipient;
     }

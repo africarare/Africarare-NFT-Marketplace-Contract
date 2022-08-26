@@ -12,7 +12,7 @@ error PlatformFeeExceedLimit(uint256 platformFee, uint256 requiredLessThan);
 error NotOfferer(address offerer, address sender);
 error OfferAlreadyAccepted(address offerer, address sender);
 error ItemIsSold(address nft, uint256 tokenId);
-error AddressIsZero(address nft, uint256 tokenId);
+error AddressIsZero(address _address);
 error NotAfricarareNFT(address nft);
 error ItemIsAlreadyListed(address nft, uint256 tokenId);
 error ItemIsNotListed(address nft, uint256 tokenId);
@@ -25,11 +25,11 @@ error ListPriceLessThanZero(uint256 listPrice);
 error NotValidAuctionDuration(uint256 startTime, uint256 endTime);
 error PaymentTokenAlreadyExists(address paytoken);
 error AuctionIsComplete(address nft, uint256 tokenId);
-error AuctionIsNotComplete(address nft, address tokenId);
+error AuctionIsNotComplete(address nft, uint256 tokenId);
 error AuctionHasStarted(uint256 blockTimestamp, uint256 auctionStartTime);
 error AuctionHasNotStarted(uint256 blockTimestamp, uint256 auctionStartTime);
 error AuctionHasBidders(address lastBidder);
-error BidTooLow(uint256 bid, uint256, uint256 minBidPrice);
+error BidTooLow(uint256 bid, uint256 minBidPrice);
 error NotAuctionCreator(address sender, address auctioncreator);
 error NotAllowedToCallAuctionResult(
     address sender,
