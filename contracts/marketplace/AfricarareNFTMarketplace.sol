@@ -607,7 +607,7 @@ contract AfricarareNFTMarketplace is
         // );
 
         if(_bidPrice <= auctionNfts[_nftAddress][_tokenId].highestBid + auctionNfts[_nftAddress][_tokenId].minBid) {
-            revert BidTooLow(_bidPrice, auctionNfts[_nftAddress][_tokenId].highestBid, auctionNfts[_nftAddress][_tokenId].minBid);
+            revert BidTooLow(_bidPrice, auctionNfts[_nftAddress][_tokenId].minBid);
         }
 
         //TODO: Move to storage contract
