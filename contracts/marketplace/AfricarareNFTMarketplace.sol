@@ -162,11 +162,8 @@ contract AfricarareNFTMarketplace is
         //     auction.nft == address(0) || auction.success,
         //     "ItemIsAlreadyAuctioned"
         // );
-        if(!auction.success) {
+        if (auction.nft != address(0) && auction.success == false) {
             revert ItemIsAlreadyAuctioned(_nftAddress, _tokenId);
-        }
-        if (auction.nft == address(0)) {
-          revert AddressIsZero(_nftAddress);
         }
         _;
     }
