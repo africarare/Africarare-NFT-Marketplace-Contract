@@ -186,6 +186,7 @@ contract AfricarareNFTMarketplace is
         //     _payToken != address(0) && payableToken[_payToken],
         //     "NotValidPaymentToken"
         // );
+        console.log('payableToken=', !payableToken[_payToken]);
         if(_payToken == address(0) || !payableToken[_payToken]) {
             revert NotValidPaymentToken(_payToken);
         }
@@ -256,7 +257,7 @@ contract AfricarareNFTMarketplace is
         //     "NotValidPaymentToken"
         // );
 
-        if(_payToken == address(0) && _payToken != listedNft.payToken) {
+        if(_payToken == address(0) || !payableToken[_payToken]) {
             revert NotValidPaymentToken(_payToken);
         }
 
@@ -749,17 +750,17 @@ contract AfricarareNFTMarketplace is
     }
 
     function addPayableToken(address _token) external onlyOwner {
-        require(_token != address(0), "AddressIsZero");
+        // require(_token != address(0), "AddressIsZero");
 
         if(_token == address(0)) {
             revert AddressIsZero(_token);
         }
         //TODO: Move to storage contract
-        require(!payableToken[_token], "PaymentTokenAlreadyAdded");
+        // require(!payableToken[_token], "PaymentTokenAlreadyAdded");
 
-        // if(payableToken[_token]) {
-        //     revert PaymentTokenAlreadyAdded(_token);
-        // }
+        if(payableToken[_token]) {
+            revert PaymentTokenAlreadyExists(_token);
+        }
 
         //TODO: Move to storage contract
         payableToken[_token] = true;
@@ -768,10 +769,10 @@ contract AfricarareNFTMarketplace is
     }
 
     function updatePlatformFee(uint256 _platformFee) external onlyOwner {
-        require(_platformFee <= 10, "PlatformFeeExceedLimit");
-        // if(_platformFee >= 10) {
-        //     revert PlatformFeeExceedLimit(_platformFee, 10);
-        // }
+        // require(_platformFee <= 10, "PlatformFeeExceedLimit");
+        if(_platformFee >= 10) {
+            revert PlatformFeeExceedLimit(_platformFee, 10);
+        }
         platformFee = _platformFee;
     }
 
