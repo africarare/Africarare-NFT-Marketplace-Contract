@@ -208,6 +208,7 @@ contract AfricarareNFTMarketplace is
         // if(nft.ownerOf(_tokenId) !== msg.sender) {
         //     revert NotNftOwner(msg.sender ,_tokenId);
         // }
+        emit ListedNFT(_nftAddress, _tokenId, _payToken, _price, msg.sender);
         nft.safeTransferFrom(msg.sender, address(this), _tokenId);
 
         //TODO: Move to storage contract
@@ -220,7 +221,6 @@ contract AfricarareNFTMarketplace is
             sold: false
         });
 
-        emit ListedNFT(_nftAddress, _tokenId, _payToken, _price, msg.sender);
     }
 
     //@notice: Cancel listed NFT
