@@ -101,7 +101,7 @@ contract AfricarareNFTMarketplace is
         //     africarareNFTFactory.isAfricarareNFT(_nftAddress),
         //     "NotAfricarareNFT"
         // );
-        if(!africarareNFTFactory.isAfricarareNFT(_nftAddress)) {
+        if (!africarareNFTFactory.isAfricarareNFT(_nftAddress)) {
             revert NotAfricarareNFT(_nftAddress);
         }
         _;
@@ -131,7 +131,7 @@ contract AfricarareNFTMarketplace is
         //     listedNFT.seller == address(0) || listedNFT.sold,
         //     "ItemIsAlreadyListed"
         // );
-        if(listedNFT.seller == address(0) || listedNFT.sold) {
+        if (listedNFT.seller == address(0) || listedNFT.sold) {
             revert ItemIsAlreadyListed(_nftAddress, _tokenId);
         }
         _;
@@ -145,12 +145,11 @@ contract AfricarareNFTMarketplace is
         //     "ItemIsAlreadyAuctioned"
         // );
 
-
-        if(auction.success) {
+        if (auction.success) {
             revert ItemIsAlreadyAuctioned(_nftAddress, _tokenId);
         }
         if (auction.nft == address(0)) {
-          revert AddressIsZero(_nftAddress);
+            revert AddressIsZero(_nftAddress);
         }
         _;
     }
@@ -179,7 +178,7 @@ contract AfricarareNFTMarketplace is
         //     offer.offerPrice > 0 && offer.offerer != address(0),
         //     "ItemIsNotOffered"
         // );
-        if(offer.offerPrice <= 0 || offer.offerer == address(0)) {
+        if (offer.offerPrice <= 0 || offer.offerer == address(0)) {
             revert ItemIsNotOffered(_nftAddress, _tokenId);
         }
         _;
@@ -191,7 +190,7 @@ contract AfricarareNFTMarketplace is
         //     _payToken != address(0) && payableToken[_payToken],
         //     "NotValidPaymentToken"
         // );
-        if(_payToken == address(0) || !payableToken[_payToken]) {
+        if (_payToken == address(0) || !payableToken[_payToken]) {
             revert NotValidPaymentToken(_payToken);
         }
         _;
@@ -233,10 +232,9 @@ contract AfricarareNFTMarketplace is
         ListNFT memory listedNFT = listNfts[_nftAddress][_tokenId];
         //require(listedNFT.seller == msg.sender, "NotListedNftOwner");
 
-        if(listedNFT.seller != msg.sender) {
+        if (listedNFT.seller != msg.sender) {
             revert NotListedNftOwner(msg.sender, listedNFT.seller);
         }
-
 
         //TODO: Move to storage contract
         delete listNfts[_nftAddress][_tokenId];
@@ -261,18 +259,18 @@ contract AfricarareNFTMarketplace is
         //     "NotValidPaymentToken"
         // );
 
-        if(_payToken == address(0) || !payableToken[_payToken]) {
+        if (_payToken == address(0) || !payableToken[_payToken]) {
             revert NotValidPaymentToken(_payToken);
         }
 
         // require(!listedNft.sold, "ItemIsSold");
-        if(listedNft.sold) {
+        if (listedNft.sold) {
             revert ItemIsSold(_nftAddress, _tokenId);
         }
 
         //require(_price >= listedNft.price, "InsufficientBalance");
 
-        if(!(_price >= listedNft.price)) {
+        if (!(_price >= listedNft.price)) {
             revert InsufficientBalance(_price, listedNft.price);
         }
 
@@ -335,7 +333,7 @@ contract AfricarareNFTMarketplace is
     ) external isListedNFT(_nftAddress, _tokenId) {
         //require(_offerPrice > 0, "ListPriceLessThanZero");
 
-        if(_offerPrice < 0) {
+        if (_offerPrice < 0) {
             revert ListPriceLessThanZero(_offerPrice);
         }
 
@@ -378,7 +376,7 @@ contract AfricarareNFTMarketplace is
         // require(offer.offerer == msg.sender, "not offerer");
         //require(!offer.accepted, "OfferAlreadyAccepted");
 
-        if(offer.accepted) {
+        if (offer.accepted) {
             revert OfferAlreadyAccepted(offer.offerer, msg.sender);
         }
 
@@ -410,11 +408,12 @@ contract AfricarareNFTMarketplace is
         //     "NotListedNftOwner"
         // );
 
-        if(listNfts[_nftAddress][_tokenId].seller != msg.sender) {
-            revert NotListedNftOwner(msg.sender, listNfts[_nftAddress][_tokenId].seller);
+        if (listNfts[_nftAddress][_tokenId].seller != msg.sender) {
+            revert NotListedNftOwner(
+                msg.sender,
+                listNfts[_nftAddress][_tokenId].seller
+            );
         }
-
-
 
         //TODO: Move to storage contract
         OfferNFT storage offer = offerNfts[_nftAddress][_tokenId][_offerer];
@@ -422,13 +421,13 @@ contract AfricarareNFTMarketplace is
         ListNFT storage list = listNfts[offer.nft][offer.tokenId];
         // require(!list.sold, "ItemIsSold");
 
-        if(list.sold) {
+        if (list.sold) {
             revert ItemIsSold(_nftAddress, _tokenId);
         }
 
         // require(!offer.accepted, "OfferAlreadyAccepted");
 
-        if(offer.accepted) {
+        if (offer.accepted) {
             revert OfferAlreadyAccepted(_offerer, msg.sender);
         }
 
@@ -491,13 +490,13 @@ contract AfricarareNFTMarketplace is
         IERC721 nft = IERC721(_nftAddress);
         // require(nft.ownerOf(_tokenId) == msg.sender, "NotNftOwner");
 
-        if(nft.ownerOf(_tokenId) != msg.sender) {
+        if (nft.ownerOf(_tokenId) != msg.sender) {
             revert NotNftOwner(msg.sender, _nftAddress);
         }
 
         // require(_endTime > _startTime, "NotValidAuctionDuration");
 
-        if(_endTime < _startTime) {
+        if (_endTime < _startTime) {
             revert NotValidAuctionDuration(_startTime, _endTime);
         }
 
@@ -541,19 +540,19 @@ contract AfricarareNFTMarketplace is
         // require(auction.creator == msg.sender, "NotAuctionCreator");
         // solhint-disable-next-line not-rely-on-time
 
-        if(auction.creator != msg.sender) {
+        if (auction.creator != msg.sender) {
             revert NotAuctionCreator(msg.sender, auction.creator);
         }
 
         // require(block.timestamp < auction.startTime, "AuctionHasStarted");
 
-        if(block.timestamp > auction.startTime) {
+        if (block.timestamp > auction.startTime) {
             revert AuctionHasStarted(block.timestamp, auction.startTime);
         }
 
         // require(auction.lastBidder == address(0), "AuctionHasBidders");
 
-        if(auction.lastBidder != address(0)) {
+        if (auction.lastBidder != address(0)) {
             revert AuctionHasBidders(auction.lastBidder);
         }
 
@@ -583,8 +582,11 @@ contract AfricarareNFTMarketplace is
         //     "AuctionHasNotStarted"
         // );
 
-        if(block.timestamp <= auctionNfts[_nftAddress][_tokenId].startTime) {
-            revert AuctionHasNotStarted(block.timestamp, auctionNfts[_nftAddress][_tokenId].startTime);
+        if (block.timestamp <= auctionNfts[_nftAddress][_tokenId].startTime) {
+            revert AuctionHasNotStarted(
+                block.timestamp,
+                auctionNfts[_nftAddress][_tokenId].startTime
+            );
         }
 
         // require(
@@ -594,7 +596,7 @@ contract AfricarareNFTMarketplace is
         //     "AuctionIsComplete"
         // );
 
-        if(block.timestamp >= auctionNfts[_nftAddress][_tokenId].endTime) {
+        if (block.timestamp >= auctionNfts[_nftAddress][_tokenId].endTime) {
             revert AuctionIsComplete(_nftAddress, _tokenId);
         }
         console.log(
@@ -610,8 +612,15 @@ contract AfricarareNFTMarketplace is
         //     "BidTooLow"
         // );
 
-        if(_bidPrice <= auctionNfts[_nftAddress][_tokenId].highestBid + auctionNfts[_nftAddress][_tokenId].minBid) {
-            revert BidTooLow(_bidPrice, auctionNfts[_nftAddress][_tokenId].minBid);
+        if (
+            _bidPrice <=
+            auctionNfts[_nftAddress][_tokenId].highestBid +
+                auctionNfts[_nftAddress][_tokenId].minBid
+        ) {
+            revert BidTooLow(
+                _bidPrice,
+                auctionNfts[_nftAddress][_tokenId].minBid
+            );
         }
 
         //TODO: Move to storage contract
@@ -641,29 +650,44 @@ contract AfricarareNFTMarketplace is
 
     // @notice Result auction, callable by auction creator, highest bidder, or marketplace owner
     function resultAuction(address _nftAddress, uint256 _tokenId) external {
-
-
-        if(auctionNfts[_nftAddress][_tokenId].success) {
+        if (auctionNfts[_nftAddress][_tokenId].success) {
             revert AuctionIsComplete(_nftAddress, _tokenId);
         }
 
-        require(
-            msg.sender == owner() ||
-                //TODO: Move to storage contract
-                msg.sender == auctionNfts[_nftAddress][_tokenId].creator ||
-                //TODO: Move to storage contract
-                msg.sender == auctionNfts[_nftAddress][_tokenId].lastBidder,
-            "NotAllowedToCallAuctionResult"
-        );
+        // require(
+        //     msg.sender == owner() ||
+        //         //TODO: Move to storage contract
+        //         msg.sender == auctionNfts[_nftAddress][_tokenId].creator ||
+        //         //TODO: Move to storage contract
+        //         msg.sender == auctionNfts[_nftAddress][_tokenId].lastBidder,
+        //     "NotAllowedToCallAuctionResult"
+        // );
 
-        require(
-            //TODO: Move to storage contract
-            // solhint-disable-next-line not-rely-on-time
-            block.timestamp > auctionNfts[_nftAddress][_tokenId].endTime,
-            "AuctionIsNotComplete"
-        );
+        if (
+            msg.sender != owner() ||
+            msg.sender != auctionNfts[_nftAddress][_tokenId].creator ||
+            msg.sender != auctionNfts[_nftAddress][_tokenId].lastBidder
+        ) {
+            revert NotAllowedToCallAuctionResult(
+                msg.sender,
+                owner(),
+                auctionNfts[_nftAddress][_tokenId].creator,
+                auctionNfts[_nftAddress][_tokenId].lastBidder
+            );
+        }
 
-        if(block.timestamp < auctionNfts[_nftAddress][_tokenId].endTime) {
+        if (block.timestamp <= auctionNfts[_nftAddress][_tokenId].endTime) {
+            revert AuctionIsComplete(_nftAddress, _tokenId);
+        }
+
+        // require(
+        //     //TODO: Move to storage contract
+        //     // solhint-disable-next-line not-rely-on-time
+        //     block.timestamp > auctionNfts[_nftAddress][_tokenId].endTime,
+        //     "AuctionIsNotComplete"
+        // );
+
+        if (block.timestamp < auctionNfts[_nftAddress][_tokenId].endTime) {
             revert AuctionIsNotComplete(_nftAddress, _tokenId);
         }
 
@@ -755,13 +779,13 @@ contract AfricarareNFTMarketplace is
     function addPayableToken(address _token) external onlyOwner {
         // require(_token != address(0), "AddressIsZero");
 
-        if(_token == address(0)) {
+        if (_token == address(0)) {
             revert AddressIsZero(_token);
         }
         //TODO: Move to storage contract
         // require(!payableToken[_token], "PaymentTokenAlreadyAdded");
 
-        if(payableToken[_token]) {
+        if (payableToken[_token]) {
             revert PaymentTokenAlreadyExists(_token);
         }
 
@@ -773,7 +797,7 @@ contract AfricarareNFTMarketplace is
 
     function updatePlatformFee(uint256 _platformFee) external onlyOwner {
         // require(_platformFee <= 10, "PlatformFeeExceedLimit");
-        if(_platformFee >= 10) {
+        if (_platformFee >= 10) {
             revert PlatformFeeExceedLimit(_platformFee, 10);
         }
         platformFee = _platformFee;
@@ -781,7 +805,7 @@ contract AfricarareNFTMarketplace is
 
     function changeFeeRecipient(address _feeRecipient) external onlyOwner {
         require(_feeRecipient != address(0), "AddressIsZero");
-        if(_feeRecipient == address(0)) {
+        if (_feeRecipient == address(0)) {
             revert AddressIsZero(_feeRecipient);
         }
 
