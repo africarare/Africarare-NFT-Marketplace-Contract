@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "../registry/Proxy.sol";
+import "../marketplace/errors/errors.sol";
 
 /* Africarare NFT-ERC721 */
 contract AfricarareNFT is
@@ -25,10 +26,6 @@ contract AfricarareNFT is
     uint256 private royaltyFee;
     address private royaltyRecipient;
     bool public lock;
-
-    error ZeroAddress();
-    error isLockedContract();
-    error RoyaltyMaxExceeded(uint256 given, uint256 max);
 
     constructor(
         string memory _name,
