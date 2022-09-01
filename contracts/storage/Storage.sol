@@ -69,7 +69,9 @@ contract TokenStorage is AccessControl {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(STORAGE_ADMIN_ROLE, _msgSender());
 
-        feeAddress = _feeAddress;
+        if(_feeAddress != address(0)) {
+            feeAddress = _feeAddress;
+        }
         platformFee = _platformFee;
     }
 
@@ -218,7 +220,9 @@ contract TokenStorage is AccessControl {
     }
 
     function setFeeAddress(address _feeAddress) external adminOnly {
-        feeAddress = _feeAddress;
+        if(_feeAddress != address(0)) {
+            feeAddress = _feeAddress;
+        }
     }
 
     function setPlatformFee(uint256 _newPlatformFee) external adminOnly {

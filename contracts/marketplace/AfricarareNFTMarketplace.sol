@@ -91,8 +91,12 @@ contract AfricarareNFTMarketplace is
     ) {
         if (_platformFee > 1000)
             revert PlatformFeeExceedLimit(_platformFee, 1000);
+        
         platformFee = _platformFee;
-        feeRecipient = _feeRecipient;
+        
+        if(_feeRecipient != address(0)) {
+            feeRecipient = _feeRecipient;
+        } 
         africarareNFTFactory = _africarareNFTFactory;
     }
 
@@ -333,7 +337,7 @@ contract AfricarareNFTMarketplace is
     ) external isListedNFT(_nftAddress, _tokenId) {
         //require(_offerPrice > 0, "ListPriceLessThanZero");
 
-        if (_offerPrice < 0) {
+        if (_offerPrice < 1) {
             revert ListPriceLessThanZero(_offerPrice);
         }
 
@@ -800,6 +804,7 @@ contract AfricarareNFTMarketplace is
         if (_platformFee >= 10) {
             revert PlatformFeeExceedLimit(_platformFee, 10);
         }
+        emit UpdatedPlatformFee(_platformFee);
         platformFee = _platformFee;
     }
 
