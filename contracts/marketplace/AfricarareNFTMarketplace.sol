@@ -51,6 +51,7 @@ import {MarketplaceEvents} from "./events/events.sol";
     @TODO: use safe 1155, 721 interfaces like safe erc20?
     @TODO: remove payable tokens as well as add them
     @TODO: test fee logic math is correctly deducting right amounts
+    @TODO: remove uint256 for uint, let compiler optimise, or at least try
 */
 
 contract AfricarareNFTMarketplace is
@@ -91,12 +92,12 @@ contract AfricarareNFTMarketplace is
     ) {
         if (_platformFee > 1000)
             revert PlatformFeeExceedLimit(_platformFee, 1000);
-        
+
         platformFee = _platformFee;
-        
+
         if(_feeRecipient != address(0)) {
             feeRecipient = _feeRecipient;
-        } 
+        }
         africarareNFTFactory = _africarareNFTFactory;
     }
 
