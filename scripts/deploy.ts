@@ -42,7 +42,7 @@ async function main() {
   `
 
   let data = JSON.stringify(deployments)
-  fs.writeFileSync('cache/deploy.ts', JSON.parse(data))
+  fs.writeFileSync('deployments/deploy.ts', JSON.parse(data))
 }
 
 main().catch((error) => {
