@@ -33,7 +33,7 @@ async function main() {
     africarareNFTMarketplace.address
   );
 
-   console.log('saving deployment details to cache/deploy.ts');
+   console.log('saving deployment details to deployments/deploy.ts');
   let deployments = `
   export const MARKETPLACE_ADDRESS = "${africarareNFTMarketplace.address}"
   export const NFT_FACTORY_ADDRESS = "${africarareNFTFactory.address}"
