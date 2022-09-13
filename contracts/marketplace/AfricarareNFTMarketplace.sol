@@ -132,7 +132,7 @@ contract AfricarareNFTMarketplace is
         //     listedNFT.seller == address(0) || listedNFT.sold,
         //     "ItemIsAlreadyListed"
         // );
-        if (listedNFT.seller != address(0) || !listedNFT.sold) {
+        if (listedNFT.seller != address(0) && !listedNFT.sold) {
             revert ItemIsAlreadyListed(_nftAddress, _tokenId);
         }
         _;
