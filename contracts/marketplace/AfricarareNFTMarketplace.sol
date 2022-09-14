@@ -325,27 +325,24 @@ contract AfricarareNFTMarketplace is
         );
     }
 
-    // function _isNotSold(IERC721 _listedNft) internal view {
-    //     if (_listedNft.sold) {
-    //         revert ItemIsSold(_nftAddress, _tokenId);
-    //     }
-    // }
-
-    // modifier isNotSold(IERC721 _listedNft:329) {
-    //     _isNotSold(_listedNft);
-    //     _;
-    // }
-
     // @notice: Buy listed NFT
     function buyNFT(
         address _nftAddress,
         uint256 _tokenId,
         address _payToken,
         uint256 _price
-    ) external onlyListedNFT(_nftAddress, _tokenId) onlyPayableToken(_payToken) {
+    )
+        external
+        onlyListedNFT(_nftAddress, _tokenId)
+        onlyPayableToken(_payToken)
+        nonReentrant
+    {
         //TODO: Move to storage contract
         ListNFT memory listedNft = listNfts[_nftAddress][_tokenId];
 
+        if (listedNft.sold) {
+            revert ItemIsSold(_nftAddress, _tokenId);
+        }
 
         if (_price < listedNft.price) {
             revert InsufficientBalance(_price, listedNft.price);
@@ -407,7 +404,7 @@ contract AfricarareNFTMarketplace is
         uint256 _tokenId,
         address _payToken,
         uint256 _offerPrice
-    ) external onlyListedNFT(_nftAddress, _tokenId) {
+    ) external onlyListedNFT(_nftAddress, _tokenId) nonReentrant {
         //require(_offerPrice > 0, "PriceLessThanZero");
 
         if (_offerPrice <= 0) {
@@ -445,6 +442,7 @@ contract AfricarareNFTMarketplace is
     function cancelOfferNFT(address _nftAddress, uint256 _tokenId)
         external
         onlyOfferedNFT(_nftAddress, _tokenId, msg.sender)
+        nonReentrant
     {
         //TODO: Move to storage contract
         OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][msg.sender];
@@ -478,6 +476,7 @@ contract AfricarareNFTMarketplace is
         external
         onlyOfferedNFT(_nftAddress, _tokenId, _offerer)
         onlyListedNFT(_nftAddress, _tokenId)
+        nonReentrant
     {
         //TODO: Move to storage contract
         if (listNfts[_nftAddress][_tokenId].seller != msg.sender) {
@@ -555,8 +554,13 @@ contract AfricarareNFTMarketplace is
         uint256 _minBid,
         uint256 _startTime,
         uint256 _endTime
-    ) external onlyPayableToken(_payToken) notAuctioned(_nftAddress, _tokenId) onlyNFTOwner(_nftAddress, _tokenId) {
-
+    )
+        external
+        onlyPayableToken(_payToken)
+        notAuctioned(_nftAddress, _tokenId)
+        onlyNFTOwner(_nftAddress, _tokenId)
+        nonReentrant
+    {
         if (_endTime <= _startTime) {
             revert NotValidAuctionDuration(_startTime, _endTime);
         }
@@ -588,14 +592,18 @@ contract AfricarareNFTMarketplace is
             msg.sender
         );
 
-        IERC721(_nftAddress).safeTransferFrom(msg.sender, address(this), _tokenId);
-
+        IERC721(_nftAddress).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _tokenId
+        );
     }
 
     // @notice Cancel auction
     function cancelAuction(address _nftAddress, uint256 _tokenId)
         external
         onlyAuctioned(_nftAddress, _tokenId)
+        nonReentrant
     {
         //TODO: Move to storage contract
         AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
@@ -632,7 +640,7 @@ contract AfricarareNFTMarketplace is
         address _nftAddress,
         uint256 _tokenId,
         uint256 _bidPrice
-    ) external onlyAuctioned(_nftAddress, _tokenId) {
+    ) external onlyAuctioned(_nftAddress, _tokenId) nonReentrant {
         //TODO: Move to storage contract
         // solhint-disable-next-line not-rely-on-time
         if (block.timestamp < auctionNfts[_nftAddress][_tokenId].startTime) {
@@ -688,7 +696,10 @@ contract AfricarareNFTMarketplace is
     }
 
     // @notice Result auction, callable by auction creator, highest bidder, or marketplace owner
-    function resultAuction(address _nftAddress, uint256 _tokenId) external {
+    function resultAuction(address _nftAddress, uint256 _tokenId)
+        external
+        nonReentrant
+    {
         if (auctionNfts[_nftAddress][_tokenId].complete) {
             revert AuctionIsComplete(_nftAddress, _tokenId);
         }
