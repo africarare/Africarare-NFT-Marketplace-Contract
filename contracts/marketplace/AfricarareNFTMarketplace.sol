@@ -341,21 +341,13 @@ contract AfricarareNFTMarketplace is
     ) external onlyListedNFT(_nftAddress, _tokenId) {
         //TODO: Move to storage contract
         ListNFT storage listedNft = listNfts[_nftAddress][_tokenId];
-        // require(
-        //     _payToken != address(0) && _payToken == listedNft.payToken,
-        //     "NotValidPaymentToken"
-        // );
-
         if (_payToken == address(0) || !payableToken[_payToken]) {
             revert NotValidPaymentToken(_payToken);
         }
 
-        // require(!listedNft.sold, "ItemIsSold");
         if (listedNft.sold) {
             revert ItemIsSold(_nftAddress, _tokenId);
         }
-
-        //require(_price >= listedNft.price, "InsufficientBalance");
 
         if (_price < listedNft.price) {
             revert InsufficientBalance(_price, listedNft.price);
