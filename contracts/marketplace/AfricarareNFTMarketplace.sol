@@ -361,7 +361,7 @@ contract AfricarareNFTMarketplace is
         }
 
         // Calculate & Transfer platform fee
-        uint256 platformFeeTotal = calculatePlatformFee(_price);
+        uint256 platformFeeTotal = calculatePlatformFee(_price, platformFee);
         IERC20(listedNft.payToken).safeTransferFrom(
             msg.sender,
             feeRecipient,
@@ -540,7 +540,7 @@ contract AfricarareNFTMarketplace is
         }
 
         // Calculate & Transfer platform fee
-        uint256 platformFeeTotal = calculatePlatformFee(offerPrice);
+        uint256 platformFeeTotal = calculatePlatformFee(offerPrice, platformFee);
         if (platformFeeTotal > 0) {
             payToken.safeTransfer(feeRecipient, platformFeeTotal);
         }
@@ -772,7 +772,7 @@ contract AfricarareNFTMarketplace is
         }
 
         // Calculate & Transfer platform fee
-        uint256 platformFeeTotal = calculatePlatformFee(highestBid);
+        uint256 platformFeeTotal = calculatePlatformFee(highestBid, platformFee);
         payToken.safeTransfer(feeRecipient, platformFeeTotal);
 
         // Transfer to auction creator
@@ -791,12 +791,12 @@ contract AfricarareNFTMarketplace is
         );
     }
 
-    function calculatePlatformFee(uint256 _price)
+    function calculatePlatformFee(uint256 _price, uint256 _platformFee)
         public
-        view
+        pure
         returns (uint256)
     {
-        return (_price * platformFee) / 10000;
+        return (_price * _platformFee) / 10000;
     }
 
     function calculateRoyaltyFee(uint256 _royalty, uint256 _price)
