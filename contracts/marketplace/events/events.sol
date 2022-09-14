@@ -77,7 +77,6 @@ abstract contract MarketplaceEvents {
     event UpdatedPlatformFee(uint256 platformFee);
 }
 
-
 abstract contract NFTEvents {
-    event UpdatedRoyaltyFee (uint256 royaltyFee);
+    event UpdatedRoyaltyFee(uint256 royaltyFee);
 }

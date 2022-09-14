@@ -41,4 +41,3 @@ error NotAllowedToCallAuctionResult(
 error ZeroAddress();
 error isLockedContract();
 error RoyaltyMaxExceeded(uint256 given, uint256 max);
-

@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "../registry/Proxy.sol";
 import "../marketplace/errors/errors.sol";
-import { NFTEvents } from "../marketplace/events/events.sol";
+import {NFTEvents} from "../marketplace/events/events.sol";
 
 /* Africarare NFT-ERC721 */
 contract AfricarareNFT is
@@ -42,7 +42,7 @@ contract AfricarareNFT is
         transferOwnership(_owner);
         royaltyFee = _royaltyFee;
 
-        if(_royaltyRecipient != address(0)) {
+        if (_royaltyRecipient != address(0)) {
             royaltyRecipient = _royaltyRecipient;
         }
     }
