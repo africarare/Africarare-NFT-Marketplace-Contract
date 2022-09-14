@@ -489,12 +489,7 @@ contract AfricarareNFTMarketplace is
         onlyOfferedNFT(_nftAddress, _tokenId, _offerer)
         onlyListedNFT(_nftAddress, _tokenId)
     {
-        // require(
-        //     //TODO: Move to storage contract
-        //     listNfts[_nftAddress][_tokenId].seller == msg.sender,
-        //     "NotListedNftOwner"
-        // );
-
+        //TODO: Move to storage contract
         if (listNfts[_nftAddress][_tokenId].seller != msg.sender) {
             revert NotListedNftOwner(
                 msg.sender,
@@ -511,8 +506,6 @@ contract AfricarareNFTMarketplace is
         if (list.sold) {
             revert ItemIsSold(_nftAddress, _tokenId);
         }
-
-        // require(!offer.accepted, "OfferAlreadyAccepted");
 
         if (offer.accepted) {
             revert OfferAlreadyAccepted(_offerer, msg.sender);
