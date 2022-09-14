@@ -206,7 +206,7 @@ contract AfricarareNFTMarketplace is
             revert AddressIsZero(_nftAddress);
         }
         if (auction.complete) {
-            revert ItemIsNotAuctioned(_nftAddress, _tokenId);
+            revert AuctionsHasCompleted(_nftAddress, _tokenId);
         }
     }
 
@@ -253,12 +253,11 @@ contract AfricarareNFTMarketplace is
 
 
     function _onlyPayableToken(address _payToken) internal view {
-              // require(
         //     TODO: Move to storage contract
-        //     _payToken != address(0) && payableToken[_payToken],
-        //     "NotValidPaymentToken"
-        // );
-        if (_payToken == address(0) || !payableToken[_payToken]) {
+        if (_payToken == address(0)) {
+          revert AddressIsZero(_payToken);
+        }
+         if (!payableToken[_payToken]) {
             revert NotValidPaymentToken(_payToken);
         }
     }
