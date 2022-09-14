@@ -611,6 +611,7 @@ contract AfricarareNFTMarketplace is
 
         // solhint-disable-next-line not-rely-on-time
         if (block.timestamp >= auction.startTime) {
+            // solhint-disable-next-line not-rely-on-time
             revert AuctionHasStarted(block.timestamp, auction.startTime);
         }
 
@@ -641,6 +642,7 @@ contract AfricarareNFTMarketplace is
         // solhint-disable-next-line not-rely-on-time
         if (block.timestamp < auctionNfts[_nftAddress][_tokenId].startTime) {
             revert AuctionHasNotStarted(
+                // solhint-disable-next-line not-rely-on-time
                 block.timestamp,
                 auctionNfts[_nftAddress][_tokenId].startTime
             );
@@ -718,6 +720,7 @@ contract AfricarareNFTMarketplace is
             );
         }
 
+        // solhint-disable-next-line not-rely-on-time
         if (block.timestamp <= auctionNfts[_nftAddress][_tokenId].endTime) {
             revert AuctionIsComplete(_nftAddress, _tokenId);
         }
@@ -729,6 +732,7 @@ contract AfricarareNFTMarketplace is
         //     "AuctionIsNotComplete"
         // );
 
+        // solhint-disable-next-line not-rely-on-time
         if (block.timestamp < auctionNfts[_nftAddress][_tokenId].endTime) {
             revert AuctionIsNotComplete(_nftAddress, _tokenId);
         }
