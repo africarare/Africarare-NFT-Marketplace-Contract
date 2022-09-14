@@ -501,7 +501,6 @@ contract AfricarareNFTMarketplace is
         OfferNFT storage offer = offerNfts[_nftAddress][_tokenId][_offerer];
         //TODO: Move to storage contract
         ListNFT storage list = listNfts[offer.nft][offer.tokenId];
-        // require(!list.sold, "ItemIsSold");
 
         if (list.sold) {
             revert ItemIsSold(_nftAddress, _tokenId);
