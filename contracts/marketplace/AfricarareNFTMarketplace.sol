@@ -325,7 +325,7 @@ contract AfricarareNFTMarketplace is
 
         //require(_price >= listedNft.price, "InsufficientBalance");
 
-        if (!(_price >= listedNft.price)) {
+        if (_price < listedNft.price) {
             revert InsufficientBalance(_price, listedNft.price);
         }
 
