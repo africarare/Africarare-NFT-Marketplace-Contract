@@ -219,12 +219,19 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    modifier notAuctioned(address _nftAddress, uint256 _tokenId) {
-        //TODO: Move to storage contract
-        AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
+    function _notAuctioned(address _nftAddress, uint256 _tokenId)
+        internal
+        view
+    {
+              AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
         if (auction.nft != address(0) && !auction.complete) {
             revert ItemIsAlreadyAuctioned(_nftAddress, _tokenId);
         }
+    }
+
+    modifier notAuctioned(address _nftAddress, uint256 _tokenId) {
+      _notAuctioned(_nftAddress, _tokenId);
+        //TODO: Move to storage contract
         _;
     }
 
@@ -504,6 +511,7 @@ contract AfricarareNFTMarketplace is
 
         uint256 offerPrice = offer.offerPrice;
 
+        //TODO: replace with standard royalties
         IAfricarareNFT nft = IAfricarareNFT(offer.nft);
         address royaltyRecipient = nft.getRoyaltyRecipient();
         uint256 royaltyFee = nft.getRoyaltyFee();
