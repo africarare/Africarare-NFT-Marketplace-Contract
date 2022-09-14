@@ -103,6 +103,18 @@ contract AfricarareNFTMarketplace is
     }
 
 
+    function _isNotZeroAddress(address _address) internal view {
+        if (_address == address(0)) {
+            revert AddressIsZero(_address);
+        }
+    }
+
+    modifier isNotZeroAddress(address _address) {
+      _isNotZeroAddress(_address);
+        _;
+    }
+
+
     function _isListedNFTOwner(address _nftAddress, uint256 _tokenId) internal view {
               //TODO: Move to storage contract
         ListNFT memory listedNFT = listNfts[_nftAddress][_tokenId];
@@ -260,6 +272,18 @@ contract AfricarareNFTMarketplace is
 
     modifier isPayableToken(address _payToken) {
       _isPayableToken(_payToken);
+        _;
+    }
+
+
+    function _isNotPayableToken(address _payToken) internal view {
+        if (payableToken[_payToken]) {
+            revert PaymentTokenAlreadyExists(_payToken);
+        }
+    }
+
+    modifier isNotPayableToken(address _payToken) {
+        _isNotPayableToken(_payToken);
         _;
     }
 
@@ -831,18 +855,15 @@ contract AfricarareNFTMarketplace is
         return payableToken[_payableToken];
     }
 
-    function addPayableToken(address _token) external onlyOwner {
+    function addPayableToken(address _token) external isNotPayableToken(_token) isNotZeroAddress(_token) onlyOwner {
         // require(_token != address(0), "AddressIsZero");
 
-        if (_token == address(0)) {
-            revert AddressIsZero(_token);
-        }
         //TODO: Move to storage contract
         // require(!payableToken[_token], "PaymentTokenAlreadyAdded");
 
-        if (payableToken[_token]) {
-            revert PaymentTokenAlreadyExists(_token);
-        }
+        // if (payableToken[_token]) {
+        //     revert PaymentTokenAlreadyExists(_token);
+        // }
 
         //TODO: Move to storage contract
         payableToken[_token] = true;
