@@ -655,12 +655,12 @@ contract AfricarareNFTMarketplace is
     ) external onlyAuctioned(_nftAddress, _tokenId) {
         // require(
         //     //TODO: Move to storage contract
-        //     // solhint-disable-next-line not-rely-on-time
         //     block.timestamp >= auctionNfts[_nftAddress][_tokenId].startTime,
         //     "AuctionHasNotStarted"
         // );
 
-        if (block.timestamp <= auctionNfts[_nftAddress][_tokenId].startTime) {
+        // solhint-disable-next-line not-rely-on-time
+        if (block.timestamp < auctionNfts[_nftAddress][_tokenId].startTime) {
             revert AuctionHasNotStarted(
                 block.timestamp,
                 auctionNfts[_nftAddress][_tokenId].startTime
