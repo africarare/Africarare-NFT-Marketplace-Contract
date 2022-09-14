@@ -46,7 +46,7 @@ contract AfricarareNFTFactory {
         return nfts[sender];
     }
 
-    function isAfricarareNFT(address _nft) external view returns (bool) {
+    function onlyAfricarareNFT(address _nft) external view returns (bool) {
         return africarareNFT[_nft];
     }
 }

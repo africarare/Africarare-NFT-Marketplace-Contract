@@ -9,5 +9,5 @@ interface IAfricarareNFTFactory {
         uint256 _royaltyFee
     ) external;
 
-    function isAfricarareNFT(address _nft) external view returns (bool);
+    function onlyAfricarareNFT(address _nft) external view returns (bool);
 }
