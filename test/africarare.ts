@@ -80,10 +80,10 @@ describe("Africarare Marketplace", () => {
 
     await marketplace.connect(owner).addPayableToken(payableToken.address);
     //TODO: Test for payable token is valid
-    /* expect(
+    expect(
       await marketplace.checkIsPayableToken(payableToken.address),
       "Add payable token has failed."
-    ).to.true; */
+    ).to.true;
 
     // Transfer payable token to testers
     const buyerAddress = await buyer.getAddress();
@@ -238,7 +238,7 @@ describe("Africarare Marketplace", () => {
     it("Buyer should cancel offer", async () => {
       const tx = await marketplace
         .connect(buyer)
-        .cancelOfferNFT(nft.address, tokenId);
+        .cancelOfferForNFT(nft.address, tokenId);
       const receipt = await tx.wait();
       const events = receipt.events?.filter(
         (e: any) => e.event == "CanceledOfferedNFT"
