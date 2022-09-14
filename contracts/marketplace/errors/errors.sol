@@ -21,7 +21,7 @@ error AuctionsHasCompleted(address nft, uint256 tokenId);
 error ItemIsNotOffered(address nft, uint256 tokenId);
 error NotNftOwner(address sender, address nftOwner);
 error NotListedNftOwner(address sender, address nftOwner);
-error PriceLessThanZero(uint256 listPrice);
+error OfferPriceTooLow(uint256 listPrice);
 error NotValidAuctionDuration(uint256 startTime, uint256 endTime);
 error PaymentTokenAlreadyExists(address paytoken);
 error NotValidPaymentToken(address paytoken);

@@ -223,18 +223,28 @@ contract AfricarareNFTMarketplace is
         internal
         view
     {
-              AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
+        AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
         if (auction.nft != address(0) && !auction.complete) {
             revert ItemIsAlreadyAuctioned(_nftAddress, _tokenId);
         }
     }
 
     modifier notAuctioned(address _nftAddress, uint256 _tokenId) {
-      _notAuctioned(_nftAddress, _tokenId);
+        _notAuctioned(_nftAddress, _tokenId);
         //TODO: Move to storage contract
         _;
     }
 
+    function _validOfferPrice(uint256 _offerPrice) internal pure {
+        if (_offerPrice <= 0) {
+            revert OfferPriceTooLow(_offerPrice);
+        }
+    }
+
+    modifier validOfferPrice(uint256 _offerPrice) {
+        _validOfferPrice(_offerPrice);
+        _;
+    }
 
     function _onlyPayableToken(address _payToken) internal view {
         //     TODO: Move to storage contract
@@ -387,13 +397,12 @@ contract AfricarareNFTMarketplace is
         uint256 _tokenId,
         address _payToken,
         uint256 _offerPrice
-    ) external onlyListedNFT(_nftAddress, _tokenId) nonReentrant {
-        //require(_offerPrice > 0, "PriceLessThanZero");
-
-        if (_offerPrice <= 0) {
-            revert PriceLessThanZero(_offerPrice);
-        }
-
+    )
+        external
+        onlyListedNFT(_nftAddress, _tokenId)
+        validOfferPrice(_offerPrice)
+        nonReentrant
+    {
         //TODO: Move to storage contract
         ListNFT memory nft = listNfts[_nftAddress][_tokenId];
         IERC20(nft.payToken).safeTransferFrom(
@@ -441,6 +450,7 @@ contract AfricarareNFTMarketplace is
         _onlyOfferedNFT(_nftAddress, _tokenId, _offerer);
         _;
     }
+
     // @notice Offerer cancel offering
     function cancelOfferForNFT(address _nftAddress, uint256 _tokenId)
         external
@@ -761,11 +771,7 @@ contract AfricarareNFTMarketplace is
         payToken.safeTransfer(auction.creator, totalPrice - platformFeeTotal);
 
         // Transfer NFT to the winner
-        nft.safeTransferFrom(
-            address(this),
-            auction.winner,
-            auction.tokenId
-        );
+        nft.safeTransferFrom(address(this), auction.winner, auction.tokenId);
 
         emit ResultedAuction(
             _nftAddress,
