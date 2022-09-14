@@ -330,12 +330,9 @@ contract AfricarareNFTMarketplace is
         uint256 _tokenId,
         address _payToken,
         uint256 _price
-    ) external onlyListedNFT(_nftAddress, _tokenId) {
+    ) external onlyListedNFT(_nftAddress, _tokenId) onlyPayableToken(_payToken) {
         //TODO: Move to storage contract
         ListNFT storage listedNft = listNfts[_nftAddress][_tokenId];
-        if (_payToken == address(0) || !payableToken[_payToken]) {
-            revert NotValidPaymentToken(_payToken);
-        }
 
         if (listedNft.sold) {
             revert ItemIsSold(_nftAddress, _tokenId);
@@ -571,8 +568,6 @@ contract AfricarareNFTMarketplace is
             complete: false
         });
 
-        IERC721(_nftAddress).safeTransferFrom(msg.sender, address(this), _tokenId);
-
         emit CreatedAuction(
             _nftAddress,
             _tokenId,
@@ -583,6 +578,9 @@ contract AfricarareNFTMarketplace is
             _endTime,
             msg.sender
         );
+
+        IERC721(_nftAddress).safeTransferFrom(msg.sender, address(this), _tokenId);
+
     }
 
     // @notice Cancel auction
