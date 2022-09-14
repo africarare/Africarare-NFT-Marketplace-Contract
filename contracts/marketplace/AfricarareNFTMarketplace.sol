@@ -126,8 +126,6 @@ contract AfricarareNFTMarketplace is
     function _onlyListedNFTOwner(address _nftAddress, uint256 _tokenId) internal view {
               //TODO: Move to storage contract
         ListNFT memory listedNFT = listNfts[_nftAddress][_tokenId];
-        //require(listedNFT.seller == msg.sender, "NotListedNftOwner");
-
         if (listedNFT.seller != msg.sender) {
             revert NotListedNftOwner(msg.sender, listedNFT.seller);
         }
@@ -184,23 +182,19 @@ contract AfricarareNFTMarketplace is
     }
 
 
-    function _onlyNotListedNFT(address _nftAddress, uint256 _tokenId)
+    function _notListedNFT(address _nftAddress, uint256 _tokenId)
         internal
         view
     {
         //TODO: Move to storage contract
         ListNFT memory listedNFT = listNfts[_nftAddress][_tokenId];
-        // require(
-        //     listedNFT.seller == address(0) || listedNFT.sold,
-        //     "ItemIsAlreadyListed"
-        // );
-        if (listedNFT.seller != address(0) && listedNFT.sold) {
+        if (listedNFT.seller != address(0) && !listedNFT.sold) {
             revert ItemIsAlreadyListed(_nftAddress, _tokenId);
         }
     }
 
-    modifier onlyNotListedNFT(address _nftAddress, uint256 _tokenId) {
-        _onlyNotListedNFT(_nftAddress, _tokenId);
+    modifier notListedNFT(address _nftAddress, uint256 _tokenId) {
+        _notListedNFT(_nftAddress, _tokenId);
         _;
     }
 
