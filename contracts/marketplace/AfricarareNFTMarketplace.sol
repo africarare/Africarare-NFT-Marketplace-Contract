@@ -549,11 +549,7 @@ contract AfricarareNFTMarketplace is
         uint256 _minBid,
         uint256 _startTime,
         uint256 _endTime
-    ) external onlyPayableToken(_payToken) notAuctioned(_nftAddress, _tokenId) {
-        IERC721 nft = IERC721(_nftAddress);
-        if (nft.ownerOf(_tokenId) != msg.sender) {
-            revert NotNftOwner(msg.sender, _nftAddress);
-        }
+    ) external onlyPayableToken(_payToken) notAuctioned(_nftAddress, _tokenId) onlyNFTOwner(_nftAddress, _tokenId) {
 
         if (_endTime <= _startTime) {
             revert NotValidAuctionDuration(_startTime, _endTime);
@@ -575,7 +571,7 @@ contract AfricarareNFTMarketplace is
             complete: false
         });
 
-        nft.safeTransferFrom(msg.sender, address(this), _tokenId);
+        IERC721(_nftAddress).safeTransferFrom(msg.sender, address(this), _tokenId);
 
         emit CreatedAuction(
             _nftAddress,
