@@ -102,15 +102,23 @@ contract AfricarareNFTMarketplace is
         africarareNFTFactory = _africarareNFTFactory;
     }
 
+    function _sufficientBalance(uint256 price, uint256 offer) internal pure {
+      if (price > offer) revert InsufficientBalance(price, offer);
+    }
 
-    function _isNotZeroAddress(address _address) internal pure {
+    modifier sufficientBalance(uint256 price, uint256 offer) {
+        _sufficientBalance(price, offer);
+        _;
+    }
+
+    function _notZeroAddress(address _address) internal pure {
         if (_address == address(0)) {
             revert AddressIsZero(_address);
         }
     }
 
-    modifier isNotZeroAddress(address _address) {
-      _isNotZeroAddress(_address);
+    modifier notZeroAddress(address _address) {
+      _notZeroAddress(_address);
         _;
     }
 
@@ -276,14 +284,14 @@ contract AfricarareNFTMarketplace is
     }
 
 
-    function _isNotPayableToken(address _payToken) internal view {
+    function _notPayableToken(address _payToken) internal view {
         if (payableToken[_payToken]) {
             revert PaymentTokenAlreadyExists(_payToken);
         }
     }
 
-    modifier isNotPayableToken(address _payToken) {
-        _isNotPayableToken(_payToken);
+    modifier notPayableToken(address _payToken) {
+        _notPayableToken(_payToken);
         _;
     }
 
@@ -410,10 +418,10 @@ contract AfricarareNFTMarketplace is
         address _payToken,
         uint256 _offerPrice
     ) external onlyListedNFT(_nftAddress, _tokenId) {
-        //require(_offerPrice > 0, "ListPriceLessThanZero");
+        //require(_offerPrice > 0, "PriceLessThanZero");
 
-        if (_offerPrice < 1) {
-            revert ListPriceLessThanZero(_offerPrice);
+        if (_offerPrice <= 0) {
+            revert PriceLessThanZero(_offerPrice);
         }
 
         //TODO: Move to storage contract
@@ -847,7 +855,7 @@ contract AfricarareNFTMarketplace is
     }
 
 
-    function addPayableToken(address _token) external isNotPayableToken(_token) isNotZeroAddress(_token) onlyOwner {
+    function addPayableToken(address _token) external notPayableToken(_token) notZeroAddress(_token) onlyOwner {
         // require(_token != address(0), "AddressIsZero");
 
         //TODO: Move to storage contract
@@ -872,7 +880,7 @@ contract AfricarareNFTMarketplace is
         platformFee = _platformFee;
     }
 
-    function changeFeeRecipient(address _feeRecipient) external onlyOwner {
+    function updateFeeRecipient(address _feeRecipient) external onlyOwner notZeroAddress(_feeRecipient) {
         require(_feeRecipient != address(0), "AddressIsZero");
         if (_feeRecipient == address(0)) {
             revert AddressIsZero(_feeRecipient);
