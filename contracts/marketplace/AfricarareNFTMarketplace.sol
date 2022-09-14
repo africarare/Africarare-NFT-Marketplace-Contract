@@ -102,6 +102,23 @@ contract AfricarareNFTMarketplace is
         africarareNFTFactory = _africarareNFTFactory;
     }
 
+
+    function _isListedNFTOwner(address _nftAddress, uint256 _tokenId) internal view {
+              //TODO: Move to storage contract
+        ListNFT memory listedNFT = listNfts[_nftAddress][_tokenId];
+        //require(listedNFT.seller == msg.sender, "NotListedNftOwner");
+
+        if (listedNFT.seller != msg.sender) {
+            revert NotListedNftOwner(msg.sender, listedNFT.seller);
+        }
+
+    }
+
+    modifier isListedNFTOwner(address _nftAddress, uint256 _tokenId) {
+        _isListedNFTOwner(_nftAddress, _tokenId);
+        _;
+    }
+
     function _isNFTOwner(address _nftAddress, uint256 _tokenId) internal view {
               IERC721 nft = IERC721(_nftAddress);
 
@@ -128,6 +145,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+
     //@dev: This is a gas optimisation trick reusing function instead of require in modifier
     function _isListedNFT(address _nftAddress, uint256 _tokenId) internal view {
         //TODO: Move to storage contract
@@ -144,6 +162,7 @@ contract AfricarareNFTMarketplace is
         _isListedNFT(_nftAddress, _tokenId);
         _;
     }
+
 
     function _isNotListedNFT(address _nftAddress, uint256 _tokenId)
         internal
@@ -164,6 +183,7 @@ contract AfricarareNFTMarketplace is
         _isNotListedNFT(_nftAddress, _tokenId);
         _;
     }
+
 
     function _isAuction(address _nftAddress, uint256 _tokenId) internal view {
         //TODO: Move to storage contract
@@ -186,6 +206,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+
     modifier isNotAuction(address _nftAddress, uint256 _tokenId) {
         //TODO: Move to storage contract
         AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
@@ -198,6 +219,7 @@ contract AfricarareNFTMarketplace is
         }
         _;
     }
+
 
     function _isOfferedNFT(
         address _nftAddress,
@@ -224,6 +246,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+
     function _isPayableToken(address _payToken) internal view {
               // require(
         //     TODO: Move to storage contract
@@ -240,6 +263,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+
     //@notice: List NFT
     function listNft(
         address _nftAddress,
@@ -247,10 +271,8 @@ contract AfricarareNFTMarketplace is
         address _payToken,
         uint256 _price
     ) external isAfricarareNFT(_nftAddress) isPayableToken(_payToken) isNFTOwner(_nftAddress, _tokenId) {
-        IERC721 nft = IERC721(_nftAddress);
-        // require(nft.ownerOf(_tokenId) == msg.sender, "NotNftOwner");
         emit ListedNFT(_nftAddress, _tokenId, _payToken, _price, msg.sender);
-        nft.safeTransferFrom(msg.sender, address(this), _tokenId);
+        IERC721(_nftAddress).safeTransferFrom(msg.sender, address(this), _tokenId);
 
         //TODO: Move to storage contract
         listNfts[_nftAddress][_tokenId] = ListNFT({
@@ -266,15 +288,8 @@ contract AfricarareNFTMarketplace is
     //@notice: Cancel listed NFT
     function cancelListedNFT(address _nftAddress, uint256 _tokenId)
         external
-        isListedNFT(_nftAddress, _tokenId)
+        isListedNFT(_nftAddress, _tokenId) isListedNFTOwner(_nftAddress, _tokenId)
     {
-        //TODO: Move to storage contract
-        ListNFT memory listedNFT = listNfts[_nftAddress][_tokenId];
-        //require(listedNFT.seller == msg.sender, "NotListedNftOwner");
-
-        if (listedNFT.seller != msg.sender) {
-            revert NotListedNftOwner(msg.sender, listedNFT.seller);
-        }
 
         //TODO: Move to storage contract
         delete listNfts[_nftAddress][_tokenId];
