@@ -32,7 +32,7 @@ error AuctionHasNotStarted(uint256 blockTimestamp, uint256 auctionStartTime);
 error AuctionHasBidders(address lastBidder);
 error BidTooLow(uint256 bid, uint256 minBidPrice);
 error NotAuctionCreator(address sender, address auctioncreator);
-error NotAllowedToCallAuctionResult(
+error notAuthorisedToCallAuction(
     address sender,
     address marketOwner,
     address nftCreator,

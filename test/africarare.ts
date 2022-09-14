@@ -214,7 +214,7 @@ describe("Africarare Marketplace", () => {
         .approve(marketplace.address, toWei(offerPrice));
       const tx = await marketplace
         .connect(buyer)
-        .offerNFT(
+        .placeOfferForNFT(
           nft.address,
           tokenId,
           payableToken.address,
@@ -254,13 +254,13 @@ describe("Africarare Marketplace", () => {
       expect(eventTokenId).eq(tokenId, "TokenId is incorrect.");
     });
 
-    it("Offerer should offer NFT", async () => {
+    it("Buyer should offer an amount of ether for an NFT again", async () => {
       await payableToken
         .connect(offerer)
         .approve(marketplace.address, toWei(offerPrice));
       const tx = await marketplace
         .connect(offerer)
-        .offerNFT(
+        .placeOfferForNFT(
           nft.address,
           tokenId,
           payableToken.address,
@@ -284,7 +284,7 @@ describe("Africarare Marketplace", () => {
     it("Creator should accept offer", async () => {
       await marketplace
         .connect(creator)
-        .acceptOfferNFT(nft.address, tokenId, await offerer.getAddress());
+        .acceptOfferForNFT(nft.address, tokenId, await offerer.getAddress());
       expect(await nft.ownerOf(tokenId)).eq(await offerer.getAddress());
     });
   });
