@@ -205,7 +205,7 @@ contract AfricarareNFTMarketplace is
     }
 
 
-    function _isAuction(address _nftAddress, uint256 _tokenId) internal view {
+    function _onlyAuctioned(address _nftAddress, uint256 _tokenId) internal view {
         //TODO: Move to storage contract
         AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
         // require(
@@ -221,13 +221,13 @@ contract AfricarareNFTMarketplace is
         }
     }
 
-    modifier isAuction(address _nftAddress, uint256 _tokenId) {
-        _isAuction(_nftAddress, _tokenId);
+    modifier onlyAuctioned(address _nftAddress, uint256 _tokenId) {
+        _onlyAuctioned(_nftAddress, _tokenId);
         _;
     }
 
 
-    modifier isNotAuction(address _nftAddress, uint256 _tokenId) {
+    modifier notAuctioned(address _nftAddress, uint256 _tokenId) {
         //TODO: Move to storage contract
         AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
         // require(
@@ -573,17 +573,13 @@ contract AfricarareNFTMarketplace is
         uint256 _minBid,
         uint256 _startTime,
         uint256 _endTime
-    ) external onlyPayableToken(_payToken) isNotAuction(_nftAddress, _tokenId) {
+    ) external onlyPayableToken(_payToken) notAuctioned(_nftAddress, _tokenId) {
         IERC721 nft = IERC721(_nftAddress);
-        // require(nft.ownerOf(_tokenId) == msg.sender, "NotNftOwner");
-
         if (nft.ownerOf(_tokenId) != msg.sender) {
             revert NotNftOwner(msg.sender, _nftAddress);
         }
 
-        // require(_endTime > _startTime, "NotValidAuctionDuration");
-
-        if (_endTime < _startTime) {
+        if (_endTime <= _startTime) {
             revert NotValidAuctionDuration(_startTime, _endTime);
         }
 
@@ -620,24 +616,19 @@ contract AfricarareNFTMarketplace is
     // @notice Cancel auction
     function cancelAuction(address _nftAddress, uint256 _tokenId)
         external
-        isAuction(_nftAddress, _tokenId)
+        onlyAuctioned(_nftAddress, _tokenId)
     {
         //TODO: Move to storage contract
         AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
-        // require(auction.creator == msg.sender, "NotAuctionCreator");
-        // solhint-disable-next-line not-rely-on-time
 
         if (auction.creator != msg.sender) {
             revert NotAuctionCreator(msg.sender, auction.creator);
         }
 
-        // require(block.timestamp < auction.startTime, "AuctionHasStarted");
-
-        if (block.timestamp > auction.startTime) {
+        // solhint-disable-next-line not-rely-on-time
+        if (block.timestamp >= auction.startTime) {
             revert AuctionHasStarted(block.timestamp, auction.startTime);
         }
-
-        // require(auction.lastBidder == address(0), "AuctionHasBidders");
 
         if (auction.lastBidder != address(0)) {
             revert AuctionHasBidders(auction.lastBidder);
@@ -661,7 +652,7 @@ contract AfricarareNFTMarketplace is
         address _nftAddress,
         uint256 _tokenId,
         uint256 _bidPrice
-    ) external isAuction(_nftAddress, _tokenId) {
+    ) external onlyAuctioned(_nftAddress, _tokenId) {
         // require(
         //     //TODO: Move to storage contract
         //     // solhint-disable-next-line not-rely-on-time
