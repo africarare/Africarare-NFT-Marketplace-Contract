@@ -17,6 +17,7 @@ error NotAfricarareNFT(address nft);
 error ItemIsAlreadyListed(address nft, uint256 tokenId);
 error ItemIsNotListed(address nft, uint256 tokenId);
 error ItemIsAlreadyAuctioned(address nft, uint256 tokenId);
+error ItemIsNotAuctioned(address nft, uint256 tokenId);
 error ItemIsNotOffered(address nft, uint256 tokenId);
 error NotNftOwner(address sender, address nftOwner);
 error NotListedNftOwner(address sender, address nftOwner);

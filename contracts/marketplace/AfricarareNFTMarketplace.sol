@@ -202,16 +202,11 @@ contract AfricarareNFTMarketplace is
     function _onlyAuctioned(address _nftAddress, uint256 _tokenId) internal view {
         //TODO: Move to storage contract
         AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
-        // require(
-        //     auction.nft != address(0) && !auction.complete,
-        //     "ItemIsAlreadyAuctioned"
-        // );
-
-        if (auction.complete) {
-            revert ItemIsAlreadyAuctioned(_nftAddress, _tokenId);
-        }
         if (auction.nft == address(0)) {
             revert AddressIsZero(_nftAddress);
+        }
+        if (auction.complete) {
+            revert ItemIsNotAuctioned(_nftAddress, _tokenId);
         }
     }
 
@@ -224,11 +219,7 @@ contract AfricarareNFTMarketplace is
     modifier notAuctioned(address _nftAddress, uint256 _tokenId) {
         //TODO: Move to storage contract
         AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
-        // require(
-        //     auction.nft == address(0) || auction.complete,
-        //     "ItemIsAlreadyAuctioned"
-        // );
-        if (auction.nft != address(0) && auction.complete == false) {
+        if (auction.nft != address(0) && !auction.complete) {
             revert ItemIsAlreadyAuctioned(_nftAddress, _tokenId);
         }
         _;
