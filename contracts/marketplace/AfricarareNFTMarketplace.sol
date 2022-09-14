@@ -653,12 +653,7 @@ contract AfricarareNFTMarketplace is
         uint256 _tokenId,
         uint256 _bidPrice
     ) external onlyAuctioned(_nftAddress, _tokenId) {
-        // require(
-        //     //TODO: Move to storage contract
-        //     block.timestamp >= auctionNfts[_nftAddress][_tokenId].startTime,
-        //     "AuctionHasNotStarted"
-        // );
-
+        //TODO: Move to storage contract
         // solhint-disable-next-line not-rely-on-time
         if (block.timestamp < auctionNfts[_nftAddress][_tokenId].startTime) {
             revert AuctionHasNotStarted(
@@ -667,29 +662,14 @@ contract AfricarareNFTMarketplace is
             );
         }
 
-        // require(
-        //     //TODO: Move to storage contract
-        //     // solhint-disable-next-line not-rely-on-time
-        //     block.timestamp <= auctionNfts[_nftAddress][_tokenId].endTime,
-        //     "AuctionIsComplete"
-        // );
-
+        //TODO: Move to storage contract
+        // NOTE: is this correct? >= ?
+        // solhint-disable-next-line not-rely-on-time
         if (block.timestamp >= auctionNfts[_nftAddress][_tokenId].endTime) {
             revert AuctionIsComplete(_nftAddress, _tokenId);
         }
-        console.log(
-            //TODO: Move to storage contract
-            auctionNfts[_nftAddress][_tokenId].highestBid +
-                auctionNfts[_nftAddress][_tokenId].minBid
-        );
-        // require(
-        //     _bidPrice >=
-        //         //TODO: Move to storage contract
-        //         auctionNfts[_nftAddress][_tokenId].highestBid +
-        //             auctionNfts[_nftAddress][_tokenId].minBid,
-        //     "BidTooLow"
-        // );
 
+        //TODO: Move to storage contract
         if (
             _bidPrice <=
             auctionNfts[_nftAddress][_tokenId].highestBid +
