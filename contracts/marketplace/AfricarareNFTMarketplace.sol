@@ -203,11 +203,11 @@ contract AfricarareNFTMarketplace is
         //TODO: Move to storage contract
         AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
         // require(
-        //     auction.nft != address(0) && !auction.success,
+        //     auction.nft != address(0) && !auction.complete,
         //     "ItemIsAlreadyAuctioned"
         // );
 
-        if (auction.success) {
+        if (auction.complete) {
             revert ItemIsAlreadyAuctioned(_nftAddress, _tokenId);
         }
         if (auction.nft == address(0)) {
@@ -225,10 +225,10 @@ contract AfricarareNFTMarketplace is
         //TODO: Move to storage contract
         AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
         // require(
-        //     auction.nft == address(0) || auction.success,
+        //     auction.nft == address(0) || auction.complete,
         //     "ItemIsAlreadyAuctioned"
         // );
-        if (auction.nft != address(0) && auction.success == false) {
+        if (auction.nft != address(0) && auction.complete == false) {
             revert ItemIsAlreadyAuctioned(_nftAddress, _tokenId);
         }
         _;
@@ -574,7 +574,7 @@ contract AfricarareNFTMarketplace is
             lastBidder: address(0),
             highestBid: _price,
             winner: address(0),
-            success: false
+            complete: false
         });
 
         nft.safeTransferFrom(msg.sender, address(this), _tokenId);
@@ -688,7 +688,7 @@ contract AfricarareNFTMarketplace is
 
     // @notice Result auction, callable by auction creator, highest bidder, or marketplace owner
     function resultAuction(address _nftAddress, uint256 _tokenId) external {
-        if (auctionNfts[_nftAddress][_tokenId].success) {
+        if (auctionNfts[_nftAddress][_tokenId].complete) {
             revert AuctionIsComplete(_nftAddress, _tokenId);
         }
 
@@ -736,7 +736,7 @@ contract AfricarareNFTMarketplace is
         IERC20 payToken = IERC20(auction.payToken);
         IERC721 nft = IERC721(auction.nft);
 
-        auction.success = true;
+        auction.complete = true;
         auction.winner = auction.creator;
 
         IAfricarareNFT africarareNft = IAfricarareNFT(_nftAddress);

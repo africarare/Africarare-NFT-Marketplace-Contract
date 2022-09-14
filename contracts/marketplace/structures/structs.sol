@@ -32,5 +32,5 @@ struct AuctionNFT {
     address lastBidder;
     uint256 highestBid;
     address winner;
-    bool success;
+    bool complete;
 }

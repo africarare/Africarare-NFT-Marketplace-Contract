@@ -52,7 +52,7 @@ contract TokenStorage is AccessControl {
         address lastBidder;
         uint256 highestBid;
         address winner;
-        bool success;
+        bool complete;
     }
 
     address public feeAddress;
