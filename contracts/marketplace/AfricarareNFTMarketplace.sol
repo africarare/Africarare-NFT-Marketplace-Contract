@@ -344,6 +344,7 @@ contract AfricarareNFTMarketplace is
         listedNft.sold = true;
 
         uint256 totalPrice = _price;
+        //TODO: Add eip royalties
         IAfricarareNFT nft = IAfricarareNFT(listedNft.nft);
         address royaltyRecipient = nft.getRoyaltyRecipient();
         uint256 royaltyFee = nft.getRoyaltyFee();
@@ -451,12 +452,11 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-
-    function _onlyNFTOfferOwner(
-        address _nftAddress,
-        uint256 _tokenId
-    ) internal view {
-              OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][msg.sender];
+    function _onlyNFTOfferOwner(address _nftAddress, uint256 _tokenId)
+        internal
+        view
+    {
+        OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][msg.sender];
         if (offer.offerer != msg.sender)
             revert NotOfferer(offer.offerer, msg.sender);
     }
@@ -540,7 +540,10 @@ contract AfricarareNFTMarketplace is
         }
 
         // Calculate & Transfer platform fee
-        uint256 platformFeeTotal = calculatePlatformFee(offerPrice, platformFee);
+        uint256 platformFeeTotal = calculatePlatformFee(
+            offerPrice,
+            platformFee
+        );
         if (platformFeeTotal > 0) {
             payToken.safeTransfer(feeRecipient, platformFeeTotal);
         }
@@ -772,7 +775,10 @@ contract AfricarareNFTMarketplace is
         }
 
         // Calculate & Transfer platform fee
-        uint256 platformFeeTotal = calculatePlatformFee(highestBid, platformFee);
+        uint256 platformFeeTotal = calculatePlatformFee(
+            highestBid,
+            platformFee
+        );
         payToken.safeTransfer(feeRecipient, platformFeeTotal);
 
         // Transfer to auction creator
