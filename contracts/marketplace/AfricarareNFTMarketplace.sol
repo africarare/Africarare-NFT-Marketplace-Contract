@@ -141,10 +141,8 @@ contract AfricarareNFTMarketplace is
         internal
         view
     {
-        IERC721 nft = IERC721(_nftAddress);
-
-        if (nft.ownerOf(_tokenId) != msg.sender) {
-            revert NotNftOwner(msg.sender, nft.ownerOf(_tokenId));
+        if (IERC721(_nftAddress).ownerOf(_tokenId) != msg.sender) {
+            revert NotNftOwner(msg.sender, IERC721(_nftAddress).ownerOf(_tokenId));
         }
     }
 
