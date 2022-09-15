@@ -184,7 +184,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    function _notListedNFT(address _nftAddress, uint256 _tokenId)
+    function _nonListedNFT(address _nftAddress, uint256 _tokenId)
         internal
         view
     {
@@ -195,8 +195,8 @@ contract AfricarareNFTMarketplace is
         }
     }
 
-    modifier notListedNFT(address _nftAddress, uint256 _tokenId) {
-        _notListedNFT(_nftAddress, _tokenId);
+    modifier nonListedNFT(address _nftAddress, uint256 _tokenId) {
+        _nonListedNFT(_nftAddress, _tokenId);
         _;
     }
 
@@ -219,7 +219,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    function _notAuctioned(address _nftAddress, uint256 _tokenId)
+    function _nonAuctioned(address _nftAddress, uint256 _tokenId)
         internal
         view
     {
@@ -229,8 +229,8 @@ contract AfricarareNFTMarketplace is
         }
     }
 
-    modifier notAuctioned(address _nftAddress, uint256 _tokenId) {
-        _notAuctioned(_nftAddress, _tokenId);
+    modifier nonAuctioned(address _nftAddress, uint256 _tokenId) {
+        _nonAuctioned(_nftAddress, _tokenId);
         //TODO: Move to storage contract
         _;
     }
@@ -261,14 +261,14 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    function _notPayableToken(address _payToken) internal view {
+    function _nonPayableToken(address _payToken) internal view {
         if (payableTokens[_payToken]) {
             revert PaymentTokenAlreadyExists(_payToken);
         }
     }
 
-    modifier notPayableToken(address _payToken) {
-        _notPayableToken(_payToken);
+    modifier nonPayableToken(address _payToken) {
+        _nonPayableToken(_payToken);
         _;
     }
 
@@ -470,19 +470,34 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+
+    function _nonAcceptedOffer(address _nftAddress, uint256 _tokenId, address _offerer) internal view {
+        OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][_offerer];
+        if (offer.accepted) {
+            revert OfferAlreadyAccepted(offer.offerer, _offerer);
+        }
+    }
+
+
+    modifier nonAcceptedOffer(
+        address _nftAddress,
+        uint256 _tokenId,
+        address _offerer
+    ) {
+        _nonAcceptedOffer(_nftAddress, _tokenId, _offerer);
+        _;
+    }
+
     // @notice Offerer cancel offering
     function cancelOfferForNFT(address _nftAddress, uint256 _tokenId)
         external
         onlyNFTOffer(_nftAddress, _tokenId, msg.sender)
         onlyNFTOfferOwner(_nftAddress, _tokenId, msg.sender)
+        nonAcceptedOffer(_nftAddress, _tokenId, msg.sender)
         nonReentrant
     {
         //TODO: Move to storage contract
         OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][msg.sender];
-        if (offer.accepted) {
-            revert OfferAlreadyAccepted(offer.offerer, msg.sender);
-        }
-
         //TODO: Move to storage contract
         delete offerNfts[_nftAddress][_tokenId][msg.sender];
         IERC20(offer.payToken).safeTransfer(offer.offerer, offer.offerPrice);
@@ -583,7 +598,7 @@ contract AfricarareNFTMarketplace is
     )
         external
         onlyPayableToken(_payToken)
-        notAuctioned(_nftAddress, _tokenId)
+        nonAuctioned(_nftAddress, _tokenId)
         onlyNFTOwner(_nftAddress, _tokenId)
         nonReentrant
     {
@@ -829,7 +844,7 @@ contract AfricarareNFTMarketplace is
 
     function addPayableToken(address _paymentToken)
         external
-        notPayableToken(_paymentToken)
+        nonPayableToken(_paymentToken)
         nonZeroAddress(_paymentToken)
         onlyOwner
     {
