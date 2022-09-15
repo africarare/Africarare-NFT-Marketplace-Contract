@@ -246,6 +246,58 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+    function _onlyNFTOffer(
+        address _nftAddress,
+        uint256 _tokenId,
+        address _offerer
+    ) internal view {
+        //TODO: Move to storage contract
+        OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][_offerer];
+        if (offer.offerPrice <= 0 || offer.offerer == address(0)) {
+            revert ItemIsNotOffered(_nftAddress, _tokenId);
+        }
+    }
+
+    modifier onlyNFTOffer(
+        address _nftAddress,
+        uint256 _tokenId,
+        address _offerer
+    ) {
+        _onlyNFTOffer(_nftAddress, _tokenId, _offerer);
+        _;
+    }
+
+    function _onlyNFTOfferOwner(address _nftAddress, uint256 _tokenId)
+        internal
+        view
+    {
+        OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][msg.sender];
+        if (offer.offerer != msg.sender)
+            revert NotOfferer(offer.offerer, msg.sender);
+    }
+
+    modifier onlyNFTOfferOwner(
+        address _nftAddress,
+        uint256 _tokenId,
+        address _offerer
+    ) {
+        _onlyNFTOfferOwner(_nftAddress, _tokenId);
+        _;
+    }
+
+    function beforeNonAcceptedOffer(OfferNFT memory _offer, address _sender)
+        internal
+        pure
+    {
+        if (_offer.accepted) {
+            revert OfferAlreadyAccepted(_offer.offerer, _sender);
+        }
+    }
+
+    modifier nonAcceptedOffer(OfferNFT memory _offer, address _sender) {
+        beforeNonAcceptedOffer(_offer, _sender);
+        _;
+    }
     function _onlyPayableToken(address _payToken) internal view {
         //     TODO: Move to storage contract
         if (_payToken == address(0)) {
@@ -431,69 +483,16 @@ contract AfricarareNFTMarketplace is
         );
     }
 
-    function _onlyNFTOffer(
-        address _nftAddress,
-        uint256 _tokenId,
-        address _offerer
-    ) internal view {
-        //TODO: Move to storage contract
-        OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][_offerer];
-        if (offer.offerPrice <= 0 || offer.offerer == address(0)) {
-            revert ItemIsNotOffered(_nftAddress, _tokenId);
-        }
-    }
-
-    modifier onlyNFTOffer(
-        address _nftAddress,
-        uint256 _tokenId,
-        address _offerer
-    ) {
-        _onlyNFTOffer(_nftAddress, _tokenId, _offerer);
-        _;
-    }
-
-    function _onlyNFTOfferOwner(address _nftAddress, uint256 _tokenId)
-        internal
-        view
-    {
-        OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][msg.sender];
-        if (offer.offerer != msg.sender)
-            revert NotOfferer(offer.offerer, msg.sender);
-    }
-
-    modifier onlyNFTOfferOwner(
-        address _nftAddress,
-        uint256 _tokenId,
-        address _offerer
-    ) {
-        _onlyNFTOfferOwner(_nftAddress, _tokenId);
-        _;
-    }
-
-
-    function _nonAcceptedOffer(address _nftAddress, uint256 _tokenId, address _offerer) internal view {
-        OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][_offerer];
-        if (offer.accepted) {
-            revert OfferAlreadyAccepted(offer.offerer, _offerer);
-        }
-    }
-
-
-    modifier nonAcceptedOffer(
-        address _nftAddress,
-        uint256 _tokenId,
-        address _offerer
-    ) {
-        _nonAcceptedOffer(_nftAddress, _tokenId, _offerer);
-        _;
-    }
 
     // @notice Offerer cancel offering
     function cancelOfferForNFT(address _nftAddress, uint256 _tokenId)
         external
         onlyNFTOffer(_nftAddress, _tokenId, msg.sender)
         onlyNFTOfferOwner(_nftAddress, _tokenId, msg.sender)
-        nonAcceptedOffer(_nftAddress, _tokenId, msg.sender)
+        nonAcceptedOffer(
+            offerNfts[_nftAddress][_tokenId][msg.sender],
+            msg.sender
+        )
         nonReentrant
     {
         //TODO: Move to storage contract
@@ -510,6 +509,7 @@ contract AfricarareNFTMarketplace is
         );
     }
 
+
     // @notice listed NFT owner accept offering
     function acceptOfferForNFT(
         address _nftAddress,
@@ -517,10 +517,11 @@ contract AfricarareNFTMarketplace is
         address _offerer
     )
         external
-        nonZeroAddress(_offerer)
         onlyNFTOffer(_nftAddress, _tokenId, _offerer)
         onlyListedNFT(_nftAddress, _tokenId)
         onlyListedNFTOwner(_nftAddress, _tokenId)
+        nonAcceptedOffer(offerNfts[_nftAddress][_tokenId][_offerer], _offerer)
+        nonZeroAddress(_offerer)
         nonReentrant
     {
         //TODO: Move to storage contract
