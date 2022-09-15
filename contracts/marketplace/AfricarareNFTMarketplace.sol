@@ -265,18 +265,19 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    function beforeOnlyNFTOfferOwner(OfferNFT memory _offer)
+    function beforeOnlyNFTOfferOwner(OfferNFT memory _offer, address _sender)
         internal
-        view
+        pure
     {
-        if (_offer.offerer != msg.sender)
-            revert NotOfferer(_offer.offerer, msg.sender);
+        if (_offer.offerer != _sender)
+            revert NotOfferer(_offer.offerer, _sender);
     }
 
     modifier onlyNFTOfferOwner(
-        OfferNFT memory _offer
+        OfferNFT memory _offer,
+        address _sender
     ) {
-        beforeOnlyNFTOfferOwner(_offer);
+        beforeOnlyNFTOfferOwner(_offer, _sender);
         _;
     }
 
@@ -483,7 +484,7 @@ contract AfricarareNFTMarketplace is
     function cancelOfferForNFT(address _nftAddress, uint256 _tokenId)
         external
         onlyNFTOffer(_nftAddress, _tokenId, msg.sender)
-        onlyNFTOfferOwner(offerNfts[_nftAddress][_tokenId][msg.sender])
+        onlyNFTOfferOwner(offerNfts[_nftAddress][_tokenId][msg.sender], msg.sender)
         nonAcceptedOffer(
             offerNfts[_nftAddress][_tokenId][msg.sender],
             msg.sender
