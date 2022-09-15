@@ -121,7 +121,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    function _onlyListedNFTOwner(address _nftAddress, uint256 _tokenId)
+    function beforeOnlyListedNFTOwner(address _nftAddress, uint256 _tokenId)
         internal
         view
     {
@@ -133,11 +133,11 @@ contract AfricarareNFTMarketplace is
     }
 
     modifier onlyListedNFTOwner(address _nftAddress, uint256 _tokenId) {
-        _onlyListedNFTOwner(_nftAddress, _tokenId);
+        beforeOnlyListedNFTOwner(_nftAddress, _tokenId);
         _;
     }
 
-    function _onlyNFTOwner(address _nftAddress, uint256 _tokenId)
+    function beforeOnlyNFTOwner(address _nftAddress, uint256 _tokenId)
         internal
         view
     {
@@ -149,23 +149,23 @@ contract AfricarareNFTMarketplace is
     }
 
     modifier onlyNFTOwner(address _nftAddress, uint256 _tokenId) {
-        _onlyNFTOwner(_nftAddress, _tokenId);
+        beforeOnlyNFTOwner(_nftAddress, _tokenId);
         _;
     }
 
-    function _onlyAfricarareNFT(address _nftAddress) internal view {
+    function beforeOnlyAfricarareNFT(address _nftAddress) internal view {
         if (!africarareNFTFactory.onlyAfricarareNFT(_nftAddress)) {
             revert NotAfricarareNFT(_nftAddress);
         }
     }
 
     modifier onlyAfricarareNFT(address _nftAddress) {
-        _onlyAfricarareNFT(_nftAddress);
+        beforeOnlyAfricarareNFT(_nftAddress);
         _;
     }
 
     //@dev: This is a gas optimisation trick reusing function instead of require in modifier
-    function _onlyListedNFT(address _nftAddress, uint256 _tokenId)
+    function beforeOnlyListedNFT(address _nftAddress, uint256 _tokenId)
         internal
         view
     {
@@ -180,11 +180,11 @@ contract AfricarareNFTMarketplace is
     }
 
     modifier onlyListedNFT(address _nftAddress, uint256 _tokenId) {
-        _onlyListedNFT(_nftAddress, _tokenId);
+        beforeOnlyListedNFT(_nftAddress, _tokenId);
         _;
     }
 
-    function _nonListedNFT(address _nftAddress, uint256 _tokenId)
+    function beforeNonListedNFT(address _nftAddress, uint256 _tokenId)
         internal
         view
     {
@@ -196,11 +196,11 @@ contract AfricarareNFTMarketplace is
     }
 
     modifier nonListedNFT(address _nftAddress, uint256 _tokenId) {
-        _nonListedNFT(_nftAddress, _tokenId);
+        beforeNonListedNFT(_nftAddress, _tokenId);
         _;
     }
 
-    function _onlyAuctioned(address _nftAddress, uint256 _tokenId)
+    function beforeOnlyAuctioned(address _nftAddress, uint256 _tokenId)
         internal
         view
     {
@@ -215,11 +215,11 @@ contract AfricarareNFTMarketplace is
     }
 
     modifier onlyAuctioned(address _nftAddress, uint256 _tokenId) {
-        _onlyAuctioned(_nftAddress, _tokenId);
+        beforeOnlyAuctioned(_nftAddress, _tokenId);
         _;
     }
 
-    function _nonAuctioned(address _nftAddress, uint256 _tokenId)
+    function beforeNonAuctioned(address _nftAddress, uint256 _tokenId)
         internal
         view
     {
@@ -230,7 +230,7 @@ contract AfricarareNFTMarketplace is
     }
 
     modifier nonAuctioned(address _nftAddress, uint256 _tokenId) {
-        _nonAuctioned(_nftAddress, _tokenId);
+        beforeNonAuctioned(_nftAddress, _tokenId);
         //TODO: Move to storage contract
         _;
     }
@@ -246,7 +246,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    function _onlyNFTOffer(
+    function beforeOnlyNFTOffer(
         address _nftAddress,
         uint256 _tokenId,
         address _offerer
@@ -263,11 +263,11 @@ contract AfricarareNFTMarketplace is
         uint256 _tokenId,
         address _offerer
     ) {
-        _onlyNFTOffer(_nftAddress, _tokenId, _offerer);
+        beforeOnlyNFTOffer(_nftAddress, _tokenId, _offerer);
         _;
     }
 
-    function _onlyNFTOfferOwner(address _nftAddress, uint256 _tokenId)
+    function beforeOnlyNFTOfferOwner(address _nftAddress, uint256 _tokenId)
         internal
         view
     {
@@ -281,7 +281,7 @@ contract AfricarareNFTMarketplace is
         uint256 _tokenId,
         address _offerer
     ) {
-        _onlyNFTOfferOwner(_nftAddress, _tokenId);
+        beforeOnlyNFTOfferOwner(_nftAddress, _tokenId);
         _;
     }
 
@@ -298,7 +298,7 @@ contract AfricarareNFTMarketplace is
         beforeNonAcceptedOffer(_offer, _sender);
         _;
     }
-    function _onlyPayableToken(address _payToken) internal view {
+    function beforeOnlyPayableToken(address _payToken) internal view {
         //     TODO: Move to storage contract
         if (_payToken == address(0)) {
             revert AddressIsZero(_payToken);
@@ -309,18 +309,18 @@ contract AfricarareNFTMarketplace is
     }
 
     modifier onlyPayableToken(address _payToken) {
-        _onlyPayableToken(_payToken);
+        beforeOnlyPayableToken(_payToken);
         _;
     }
 
-    function _nonPayableToken(address _payToken) internal view {
+    function beforeNonPayableToken(address _payToken) internal view {
         if (payableTokens[_payToken]) {
             revert PaymentTokenAlreadyExists(_payToken);
         }
     }
 
     modifier nonPayableToken(address _payToken) {
-        _nonPayableToken(_payToken);
+        beforeNonPayableToken(_payToken);
         _;
     }
 
