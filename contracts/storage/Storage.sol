@@ -4,6 +4,7 @@ pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
+//TODO: Implement
 contract TokenStorage is AccessControl {
     bytes32 public constant STORAGE_ADMIN_ROLE =
         keccak256("STORAGE_ADMIN_ROLE");
