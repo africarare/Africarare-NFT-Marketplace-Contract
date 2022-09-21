@@ -121,19 +121,19 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    function beforeOnlyListedNFTOwner(address _nftAddress, uint256 _tokenId)
+    //FIXME: pass listedNFT struct in
+    function beforeOnlyListedNFTOwner(ListNFT memory _listedNFT)
         internal
         view
     {
         //TODO: Move to storage contract
-        ListNFT memory listedNFT = listNfts[_nftAddress][_tokenId];
-        if (listedNFT.seller != msg.sender) {
-            revert NotListedNftOwner(msg.sender, listedNFT.seller);
+        if (_listedNFT.seller != msg.sender) {
+            revert NotListedNftOwner(msg.sender, _listedNFT.seller);
         }
     }
 
-    modifier onlyListedNFTOwner(address _nftAddress, uint256 _tokenId) {
-        beforeOnlyListedNFTOwner(_nftAddress, _tokenId);
+    modifier onlyListedNFTOwner(ListNFT memory _listedNFT) {
+        beforeOnlyListedNFTOwner(_listedNFT);
         _;
     }
 
@@ -163,6 +163,7 @@ contract AfricarareNFTMarketplace is
     }
 
     //@dev: This is a gas optimisation trick reusing function instead of require in modifier
+    //FIXME: pass listNFTs struct in
     function beforeOnlyListedNFT(address _nftAddress, uint256 _tokenId)
         internal
         view
@@ -182,6 +183,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+    //FIXME: pass listedNFT struct in
     function beforeNonListedNFT(address _nftAddress, uint256 _tokenId)
         internal
         view
@@ -198,6 +200,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+    //FIXME: pass auction struct in
     function beforeOnlyAuctioned(address _nftAddress, uint256 _tokenId)
         internal
         view
@@ -217,6 +220,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+    //FIXME: pass auction struct in
     function beforeNonAuctioned(address _nftAddress, uint256 _tokenId)
         internal
         view
@@ -244,6 +248,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+    //FIXME: pass offer struct in
     function beforeOnlyNFTOffer(
         address _nftAddress,
         uint256 _tokenId,
@@ -281,6 +286,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+    //NOTE: FIXED IMPLEMENTATION
     function beforeNonAcceptedOffer(OfferNFT memory _offer, address _sender)
         internal
         pure
@@ -355,7 +361,7 @@ contract AfricarareNFTMarketplace is
     function cancelListedNFT(address _nftAddress, uint256 _tokenId)
         external
         onlyListedNFT(_nftAddress, _tokenId)
-        onlyListedNFTOwner(_nftAddress, _tokenId)
+        onlyListedNFTOwner(listNfts[_nftAddress][_tokenId])
     {
         //TODO: Move to storage contract
         delete listNfts[_nftAddress][_tokenId];
@@ -515,7 +521,7 @@ contract AfricarareNFTMarketplace is
         external
         onlyNFTOffer(_nftAddress, _tokenId, _offerer)
         onlyListedNFT(_nftAddress, _tokenId)
-        onlyListedNFTOwner(_nftAddress, _tokenId)
+        onlyListedNFTOwner(listNfts[_nftAddress][_tokenId])
         nonAcceptedOffer(offerNfts[_nftAddress][_tokenId][_offerer], _offerer)
         nonZeroAddress(_offerer)
         nonReentrant
