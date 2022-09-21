@@ -168,6 +168,7 @@ contract AfricarareNFTMarketplace is
         view
     {
         //TODO: Move to storage contract
+        //FIXME: move this zero check somewhere better or remove it for explicit zero check modifier
         if (_listedNFT.seller == address(0)) {
             revert AddressIsZero(_listedNFT.seller);
         }
