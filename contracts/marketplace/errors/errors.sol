@@ -2,6 +2,7 @@
 // Author: Africarare
 pragma solidity 0.8.7;
 
+import "../structures/structs.sol";
 //ERRORS
 // Insufficient balance for transfer. Needed `required` but only `available` available.
 // @param available balance available.
@@ -12,6 +13,7 @@ error PlatformFeeExceedLimit(uint256 platformFee, uint256 requiredLessThan);
 error NotOfferer(address offerer, address sender);
 error OfferAlreadyAccepted(address offerer, address sender);
 error ItemIsSold(address nft, uint256 tokenId);
+error ItemIsSoldStruct(ListNFT);
 error AddressIsZero(address _address);
 error NotAfricarareNFT(address nft);
 error ItemIsAlreadyListed(address nft, uint256 tokenId);

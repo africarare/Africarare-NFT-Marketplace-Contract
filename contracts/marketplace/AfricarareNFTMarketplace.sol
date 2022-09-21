@@ -121,7 +121,6 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    //FIXME: pass listedNFT struct in
     function beforeOnlyListedNFTOwner(ListNFT memory _listedNFT)
         internal
         view
@@ -162,24 +161,24 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    //@dev: This is a gas optimisation trick reusing function instead of require in modifier
+    //@dev: This is a gas optimislation trick reusing function instead of require in modifier
     //FIXME: pass listNFTs struct in
-    function beforeOnlyListedNFT(address _nftAddress, uint256 _tokenId)
+    function beforeOnlyListedNFT(ListNFT memory _listedNFT)
         internal
         view
     {
         //TODO: Move to storage contract
-        if (listNfts[_nftAddress][_tokenId].seller == address(0)) {
-            revert AddressIsZero(listNfts[_nftAddress][_tokenId].seller);
+        if (_listedNFT.seller == address(0)) {
+            revert AddressIsZero(_listedNFT.seller);
         }
         //TODO: Move to storage contract
-        if (listNfts[_nftAddress][_tokenId].sold) {
-            revert ItemIsSold(_nftAddress, _tokenId);
+        if (_listedNFT.sold) {
+            revert ItemIsSoldStruct(_listedNFT);
         }
     }
 
-    modifier onlyListedNFT(address _nftAddress, uint256 _tokenId) {
-        beforeOnlyListedNFT(_nftAddress, _tokenId);
+    modifier onlyListedNFT(ListNFT memory _listedNFT) {
+        beforeOnlyListedNFT(_listedNFT);
         _;
     }
 
@@ -360,7 +359,7 @@ contract AfricarareNFTMarketplace is
     //@notice: Cancel listed NFT
     function cancelListedNFT(address _nftAddress, uint256 _tokenId)
         external
-        onlyListedNFT(_nftAddress, _tokenId)
+        onlyListedNFT(listNfts[_nftAddress][_tokenId])
         onlyListedNFTOwner(listNfts[_nftAddress][_tokenId])
     {
         //TODO: Move to storage contract
@@ -380,7 +379,7 @@ contract AfricarareNFTMarketplace is
         uint256 _price
     )
         external
-        onlyListedNFT(_nftAddress, _tokenId)
+        onlyListedNFT(listNfts[_nftAddress][_tokenId])
         onlyPayableToken(_payToken)
         nonReentrant
     {
@@ -454,7 +453,7 @@ contract AfricarareNFTMarketplace is
         uint256 _offerPrice
     )
         external
-        onlyListedNFT(_nftAddress, _tokenId)
+        onlyListedNFT(listNfts[_nftAddress][_tokenId])
         validOfferPrice(_offerPrice)
         nonReentrant
     {
@@ -520,7 +519,7 @@ contract AfricarareNFTMarketplace is
     )
         external
         onlyNFTOffer(_nftAddress, _tokenId, _offerer)
-        onlyListedNFT(_nftAddress, _tokenId)
+        onlyListedNFT(listNfts[_nftAddress][_tokenId])
         onlyListedNFTOwner(listNfts[_nftAddress][_tokenId])
         nonAcceptedOffer(offerNfts[_nftAddress][_tokenId][_offerer], _offerer)
         nonZeroAddress(_offerer)
