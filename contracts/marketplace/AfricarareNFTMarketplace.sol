@@ -162,13 +162,12 @@ contract AfricarareNFTMarketplace is
     }
 
     //@dev: This is a gas optimislation trick reusing function instead of require in modifier
-    //FIXME: pass listNFTs struct in
     function beforeOnlyListedNFT(ListNFT memory _listedNFT)
         internal
-        view
+        pure
     {
         //TODO: Move to storage contract
-        //FIXME: move this zero check somewhere better or remove it for explicit zero check modifier
+        //FIXME: move this zero check somewhere better or remove it for explicit zero check modifier?
         if (_listedNFT.seller == address(0)) {
             revert AddressIsZero(_listedNFT.seller);
         }
@@ -183,20 +182,18 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    //FIXME: pass listedNFT struct in
-    function beforeNonListedNFT(address _nftAddress, uint256 _tokenId)
+    function beforeNonListedNFT(ListNFT memory _listedNFT)
         internal
-        view
+        pure
     {
         //TODO: Move to storage contract
-        ListNFT memory listedNFT = listNfts[_nftAddress][_tokenId];
-        if (listedNFT.seller != address(0) && !listedNFT.sold) {
-            revert ItemIsAlreadyListed(_nftAddress, _tokenId);
+        if (_listedNFT.seller != address(0) && _listedNFT.sold) {
+            revert ItemIsAlreadyListed(_listedNFT);
         }
     }
 
-    modifier nonListedNFT(address _nftAddress, uint256 _tokenId) {
-        beforeNonListedNFT(_nftAddress, _tokenId);
+    modifier nonListedNFT(ListNFT memory _listedNFT) {
+        beforeNonListedNFT(_listedNFT);
         _;
     }
 
