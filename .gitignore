@@ -17,3 +17,6 @@ artifacts
 
 #Remix
 contracts/.deps
+
+#Using npm
+yarn.lock
