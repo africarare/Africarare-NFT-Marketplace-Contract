@@ -215,7 +215,6 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    //FIXME: pass auction struct in
     function beforeNonAuctioned(AuctionNFT memory _auction)
         internal
         pure
@@ -241,25 +240,18 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    //FIXME: pass offer struct in
-    function beforeOnlyNFTOffer(
-        address _nftAddress,
-        uint256 _tokenId,
-        address _offerer
-    ) internal view {
-        //TODO: Move to storage contract
-        OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][_offerer];
-        if (offer.offerPrice <= 0 || offer.offerer == address(0)) {
-            revert ItemIsNotOffered(_nftAddress, _tokenId);
-        }
+    function beforeOnlyNFTOffer(OfferNFT memory _offer)
+    internal pure
+    {
+      //TODO: Move to storage contract
+      if (_offer.offerPrice <= 0 || _offer.offerer == address(0)) {
+        revert ItemIsNotOffered(_offer);
+      }
     }
 
-    modifier onlyNFTOffer(
-        address _nftAddress,
-        uint256 _tokenId,
-        address _offerer
-    ) {
-        beforeOnlyNFTOffer(_nftAddress, _tokenId, _offerer);
+    modifier onlyNFTOffer(OfferNFT memory _offer)
+    {
+        beforeOnlyNFTOffer(_offer);
         _;
     }
 
@@ -478,7 +470,7 @@ contract AfricarareNFTMarketplace is
     // @notice Offerer cancel offering
     function cancelOfferForNFT(address _nftAddress, uint256 _tokenId)
         external
-        onlyNFTOffer(_nftAddress, _tokenId, msg.sender)
+        onlyNFTOffer(offerNfts[_nftAddress][_tokenId][msg.sender])
         onlyNFTOfferOwner(offerNfts[_nftAddress][_tokenId][msg.sender], msg.sender)
         nonAcceptedOffer(
             offerNfts[_nftAddress][_tokenId][msg.sender],
@@ -508,7 +500,7 @@ contract AfricarareNFTMarketplace is
         address _offerer
     )
         external
-        onlyNFTOffer(_nftAddress, _tokenId, _offerer)
+        onlyNFTOffer(offerNfts[_nftAddress][_tokenId][_offerer])
         onlyListedNFT(listNfts[_nftAddress][_tokenId])
         onlyListedNFTOwner(listNfts[_nftAddress][_tokenId])
         nonAcceptedOffer(offerNfts[_nftAddress][_tokenId][_offerer], _offerer)

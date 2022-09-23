@@ -19,7 +19,7 @@ error ItemIsAlreadyListed(ListNFT);
 error ItemIsNotListed(address nft, uint256 tokenId);
 error ItemIsAlreadyAuctioned(AuctionNFT);
 error AuctionsHasCompleted(AuctionNFT);
-error ItemIsNotOffered(address nft, uint256 tokenId);
+error ItemIsNotOffered(OfferNFT);
 error NotNftOwner(address sender, address nftOwner);
 error NotListedNftOwner(address sender, address nftOwner);
 error OfferPriceTooLow(uint256 listPrice);
