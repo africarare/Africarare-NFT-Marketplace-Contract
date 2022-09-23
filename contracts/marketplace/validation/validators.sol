@@ -2,7 +2,6 @@
 // Author: Africarare
 pragma solidity 0.8.7;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "../structures/structs.sol";
 import "../errors/errors.sol";
 import "../interfaces/IAfricarareNFTFactory.sol";
