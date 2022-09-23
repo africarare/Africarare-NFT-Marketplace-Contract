@@ -200,6 +200,31 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+
+
+        //     //FIXME: modifier validation pattern
+        // if (_endTime <= _startTime) {
+        //     revert NotValidAuctionDuration(_startTime, _endTime);
+        // }
+
+    function beforeOnlyValidAuctionDuration(
+      uint256 _startTime,
+      uint256 _endTime
+    ) internal pure {
+        if (_endTime <= _startTime) {
+            revert NotValidAuctionDuration(_startTime, _endTime);
+        }
+    }
+
+    modifier onlyValidAuctionDuration(
+      uint256 _startTime,
+      uint256 _endTime
+    ) {
+        beforeOnlyValidAuctionDuration(_startTime, _endTime);
+        _;
+    }
+
+
     function beforeOnlyStartedAuction(
         AuctionNFT memory _auction,
         uint256 _timestamp
@@ -650,14 +675,11 @@ contract AfricarareNFTMarketplace is
     )
         external
         onlyPayableToken(_payToken)
-        nonAuctioned(auctionNfts[_nftAddress][_tokenId])
         onlyNFTOwner(_nftAddress, _tokenId)
+        onlyValidAuctionDuration(_startTime, _endTime)
+        nonAuctioned(auctionNfts[_nftAddress][_tokenId])
         nonReentrant
     {
-        //FIXME: modifier validation pattern
-        if (_endTime <= _startTime) {
-            revert NotValidAuctionDuration(_startTime, _endTime);
-        }
 
         //TODO: Move to storage contract
         auctionNfts[_nftAddress][_tokenId] = AuctionNFT({
