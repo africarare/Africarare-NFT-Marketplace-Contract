@@ -198,22 +198,21 @@ contract AfricarareNFTMarketplace is
     }
 
     //FIXME: pass auction struct in
-    function beforeOnlyAuctioned(address _nftAddress, uint256 _tokenId)
+    function beforeOnlyAuctioned(AuctionNFT memory _auction)
         internal
-        view
+        pure
     {
         //TODO: Move to storage contract
-        AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
-        if (auction.nft == address(0)) {
-            revert AddressIsZero(_nftAddress);
+        if (_auction.nft == address(0)) {
+            revert AddressIsZero(_auction.nft);
         }
-        if (auction.complete) {
-            revert AuctionsHasCompleted(_nftAddress, _tokenId);
+        if (_auction.complete) {
+            revert AuctionsHasCompleted(_auction);
         }
     }
 
-    modifier onlyAuctioned(address _nftAddress, uint256 _tokenId) {
-        beforeOnlyAuctioned(_nftAddress, _tokenId);
+    modifier onlyAuctioned(AuctionNFT memory _auction) {
+        beforeOnlyAuctioned(_auction);
         _;
     }
 
@@ -631,7 +630,7 @@ contract AfricarareNFTMarketplace is
     // @notice Cancel auction
     function cancelAuction(address _nftAddress, uint256 _tokenId)
         external
-        onlyAuctioned(_nftAddress, _tokenId)
+        onlyAuctioned(auctionNfts[_nftAddress][_tokenId])
         nonReentrant
     {
         //TODO: Move to storage contract
@@ -669,7 +668,9 @@ contract AfricarareNFTMarketplace is
         address _nftAddress,
         uint256 _tokenId,
         uint256 _bidPrice
-    ) external onlyAuctioned(_nftAddress, _tokenId) nonReentrant {
+    ) external
+      onlyAuctioned(auctionNfts[_nftAddress][_tokenId])
+      nonReentrant {
         //TODO: Move to storage contract
         // solhint-disable-next-line not-rely-on-time
         if (block.timestamp < auctionNfts[_nftAddress][_tokenId].startTime) {
