@@ -168,7 +168,7 @@ Impact: Informational
 Confidence: High
  - [ ] ID-14
 [AfricarareNFTMarketplace.isNotAuction(address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L161-L172) compares to a boolean constant:
-	-[auction.nft != address(0) && auction.complete == false](contracts/marketplace/AfricarareNFTMarketplace.sol#L168)
+	-[auction.nft != address(0) && auction.called == false](contracts/marketplace/AfricarareNFTMarketplace.sol#L168)
 
 contracts/marketplace/AfricarareNFTMarketplace.sol#L161-L172
 

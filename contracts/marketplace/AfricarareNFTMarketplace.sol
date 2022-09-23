@@ -191,13 +191,28 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+
+    // function beforeNonListedNFT(ListNFT memory _listedNFT) internal pure {
+    //     //TODO: Move to storage contract
+    //     if (_listedNFT.seller != address(0) && _listedNFT.sold) {
+    //         revert ItemIsAlreadyListed(_listedNFT);
+    //     }
+
+    // }
+    // modifier onlyTranferAmountRequired(ListNFT memory _listedNFT) {
+    //     beforeOnlyTransferAmountRequired(_listedNFT);
+    //     _;
+    // }
+
+
+
     function beforeOnlyAuctioned(AuctionNFT memory _auction) internal pure {
         //TODO: Move to storage contract
         if (_auction.nft == address(0)) {
             revert AddressIsZero(_auction.nft);
         }
-        if (_auction.complete) {
-            revert AuctionsHasCompleted(_auction);
+        if (_auction.called) {
+            revert AuctionsIsCalled(_auction);
         }
     }
 
@@ -207,7 +222,7 @@ contract AfricarareNFTMarketplace is
     }
 
     function beforeNonAuctioned(AuctionNFT memory _auction) internal pure {
-        if (_auction.nft != address(0) && !_auction.complete) {
+        if (_auction.nft != address(0) && !_auction.called) {
             revert ItemIsAlreadyAuctioned(_auction);
         }
     }
@@ -580,7 +595,7 @@ contract AfricarareNFTMarketplace is
             lastBidder: address(0),
             highestBid: _price,
             winner: address(0),
-            complete: false
+            called: false
         });
 
         emit CreatedAuction(
@@ -614,6 +629,14 @@ contract AfricarareNFTMarketplace is
         if (auction.creator != msg.sender) {
             revert NotAuctionCreator(msg.sender, auction.creator);
         }
+        //NotAuctionCreator
+        //AuctionHasNotStarted
+        //AuctionHasStarted
+        //AuctionHasBidders
+        // AuctionIsComplete
+        //AuctionIsNotComplete
+        //BidTooLow
+        //notAuthorisedToCallAuction
 
       //FIXME: modifier validation pattern
         // solhint-disable-next-line not-rely-on-time
@@ -710,7 +733,8 @@ contract AfricarareNFTMarketplace is
         //TODO: Move to storage contract
       //FIXME: modifier validation pattern
         AuctionNFT storage auction = auctionNfts[_nftAddress][_tokenId];
-        if (auctionNfts[_nftAddress][_tokenId].complete) {
+        if (auctionNfts[_nftAddress][_tokenId].called) {
+          //FIXME: change to auction is already called
             revert AuctionIsComplete(_nftAddress, _tokenId);
         }
 
@@ -737,7 +761,7 @@ contract AfricarareNFTMarketplace is
         IERC20 payToken = IERC20(auction.payToken);
         IERC721 nft = IERC721(auction.nft);
 
-        auction.complete = true;
+        auction.called = true;
         auction.winner = auction.lastBidder;
 
         IAfricarareNFT africarareNft = IAfricarareNFT(_nftAddress);
