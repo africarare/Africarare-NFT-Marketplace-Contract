@@ -333,9 +333,10 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-
-
-    function beforeOnlyAuctionCreator(AuctionNFT memory _auction, address _sender) internal pure {
+    function beforeOnlyAuctionCreator(
+        AuctionNFT memory _auction,
+        address _sender
+    ) internal pure {
         if (_auction.creator != _sender) {
             revert NotAuctionCreator(_auction, _sender);
         }
@@ -357,18 +358,15 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+    // //FIXME: modifier validation pattern
+    //   if (auction.creator != msg.sender) {
+    //       revert NotAuctionCreator(msg.sender, auction.creator);
+    //   }
 
-      // //FIXME: modifier validation pattern
-      //   if (auction.creator != msg.sender) {
-      //       revert NotAuctionCreator(msg.sender, auction.creator);
-      //   }
-
-      //   //FIXME: modifier validation pattern
-      //   if (auction.lastBidder != address(0)) {
-      //       revert AuctionHasBidders(_auction);
-      //   }
-
-
+    //   //FIXME: modifier validation pattern
+    //   if (auction.lastBidder != address(0)) {
+    //       revert AuctionHasBidders(_auction);
+    //   }
 
     function _validOfferPrice(uint256 _offerPrice) internal pure {
         if (_offerPrice <= 0) {
@@ -757,13 +755,14 @@ contract AfricarareNFTMarketplace is
         nonBiddedAuction(auctionNfts[_nftAddress][_tokenId])
         nonReentrant
     {
-
         // FIXME: determine if this is safe
         delete auctionNfts[_nftAddress][_tokenId];
 
-
-        IERC721(_nftAddress).safeTransferFrom(address(this), msg.sender, _tokenId);
-
+        IERC721(_nftAddress).safeTransferFrom(
+            address(this),
+            msg.sender,
+            _tokenId
+        );
 
         emit CancelledAuction(
             _nftAddress,
