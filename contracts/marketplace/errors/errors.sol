@@ -21,7 +21,7 @@ error RoyaltyMaxExceeded(uint256 given, uint256 max);
 error NotNftOwner(address sender, address nftOwner);
 //listing
 error NotListedNft();
-error NotListedNftOwner(ListNFT, address nftOwner);
+error NotListedNftOwner(ListNFT, address sender);
 error ItemIsSold(ListNFT);
 error ItemIsAlreadyListed(ListNFT);
 error ItemIsNotListed(address nft, uint256 tokenId);
@@ -40,9 +40,9 @@ error AuctionIsFinished(AuctionNFT, uint256 blockTimestamp);
 error AuctionIsNotFinished(AuctionNFT, uint256 blockTimestamp);
 error AuctionIsStarted(AuctionNFT, uint256 blockTimestamp);
 error AuctionIsNotStarted(AuctionNFT, uint256 blockTimestamp);
-error AuctionHasBidders(address lastBidder);
+error AuctionHasBidders(AuctionNFT);
 error BidTooLow(uint256 bid, uint256 minBidPrice);
-error NotAuctionCreator(address sender, address auctioncreator);
+error NotAuctionCreator(AuctionNFT, address sender);
 error notAuthorisedToCallAuction(
     address sender,
     address marketOwner,

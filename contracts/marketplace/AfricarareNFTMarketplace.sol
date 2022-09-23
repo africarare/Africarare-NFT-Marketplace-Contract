@@ -333,6 +333,43 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+
+
+    function beforeOnlyAuctionCreator(AuctionNFT memory _auction, address _sender) internal pure {
+        if (_auction.creator != _sender) {
+            revert NotAuctionCreator(_auction, _sender);
+        }
+    }
+
+    modifier onlyAuctionCreator(AuctionNFT memory _auction, address _sender) {
+        beforeOnlyAuctionCreator(_auction, _sender);
+        _;
+    }
+
+    function beforeNonBiddedAuction(AuctionNFT memory _auction) internal pure {
+        if (_auction.lastBidder != address(0)) {
+            revert AuctionHasBidders(_auction);
+        }
+    }
+
+    modifier nonBiddedAuction(AuctionNFT memory _auction) {
+        beforeNonBiddedAuction(_auction);
+        _;
+    }
+
+
+      // //FIXME: modifier validation pattern
+      //   if (auction.creator != msg.sender) {
+      //       revert NotAuctionCreator(msg.sender, auction.creator);
+      //   }
+
+      //   //FIXME: modifier validation pattern
+      //   if (auction.lastBidder != address(0)) {
+      //       revert AuctionHasBidders(_auction);
+      //   }
+
+
+
     function _validOfferPrice(uint256 _offerPrice) internal pure {
         if (_offerPrice <= 0) {
             revert OfferPriceTooLow(_offerPrice);
@@ -473,6 +510,7 @@ contract AfricarareNFTMarketplace is
 
         listedNft.sold = true;
 
+        // FIXME: check if this mutatble use of totalPrice is safe
         uint256 totalPrice = _price;
         //TODO: Add eip royalties
         IAfricarareNFT nft = IAfricarareNFT(listedNft.nft);
@@ -713,27 +751,20 @@ contract AfricarareNFTMarketplace is
     function cancelAuction(address _nftAddress, uint256 _tokenId)
         external
         onlyAuctioned(auctionNfts[_nftAddress][_tokenId])
+        onlyAuctionCreator(auctionNfts[_nftAddress][_tokenId], msg.sender)
         // solhint-disable-next-line not-rely-on-time
         nonStartedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
+        nonBiddedAuction(auctionNfts[_nftAddress][_tokenId])
         nonReentrant
     {
-        //TODO: Move to storage contract
-        AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
 
-        //FIXME: modifier validation pattern
-        if (auction.creator != msg.sender) {
-            revert NotAuctionCreator(msg.sender, auction.creator);
-        }
-
-        //FIXME: modifier validation pattern
-        if (auction.lastBidder != address(0)) {
-            revert AuctionHasBidders(auction.lastBidder);
-        }
-
-        IERC721 nft = IERC721(_nftAddress);
-        //TODO: Move to storage contract
+        // FIXME: determine if this is safe
         delete auctionNfts[_nftAddress][_tokenId];
-        nft.safeTransferFrom(address(this), msg.sender, _tokenId);
+
+
+        IERC721(_nftAddress).safeTransferFrom(address(this), msg.sender, _tokenId);
+
+
         emit CancelledAuction(
             _nftAddress,
             _tokenId,
