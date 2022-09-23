@@ -197,7 +197,6 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    //FIXME: pass auction struct in
     function beforeOnlyAuctioned(AuctionNFT memory _auction)
         internal
         pure
@@ -217,19 +216,17 @@ contract AfricarareNFTMarketplace is
     }
 
     //FIXME: pass auction struct in
-    function beforeNonAuctioned(address _nftAddress, uint256 _tokenId)
+    function beforeNonAuctioned(AuctionNFT memory _auction)
         internal
-        view
+        pure
     {
-        AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
-        if (auction.nft != address(0) && !auction.complete) {
-            revert ItemIsAlreadyAuctioned(_nftAddress, _tokenId);
+        if (_auction.nft != address(0) && !_auction.complete) {
+            revert ItemIsAlreadyAuctioned(_auction);
         }
     }
 
-    modifier nonAuctioned(address _nftAddress, uint256 _tokenId) {
-        beforeNonAuctioned(_nftAddress, _tokenId);
-        //TODO: Move to storage contract
+    modifier nonAuctioned(AuctionNFT memory _auction) {
+        beforeNonAuctioned(_auction);
         _;
     }
 
@@ -585,7 +582,7 @@ contract AfricarareNFTMarketplace is
     )
         external
         onlyPayableToken(_payToken)
-        nonAuctioned(_nftAddress, _tokenId)
+        nonAuctioned(auctionNfts[_nftAddress][_tokenId])
         onlyNFTOwner(_nftAddress, _tokenId)
         nonReentrant
     {
