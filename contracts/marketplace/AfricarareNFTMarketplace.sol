@@ -121,10 +121,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    function beforeOnlyListedNFTOwner(ListNFT memory _listedNFT)
-        internal
-        view
-    {
+    function beforeOnlyListedNFTOwner(ListNFT memory _listedNFT) internal view {
         //TODO: Move to storage contract
         if (_listedNFT.seller != msg.sender) {
             revert NotListedNftOwner(msg.sender, _listedNFT.seller);
@@ -141,7 +138,10 @@ contract AfricarareNFTMarketplace is
         view
     {
         if (IERC721(_nftAddress).ownerOf(_tokenId) != msg.sender) {
-            revert NotNftOwner(msg.sender, IERC721(_nftAddress).ownerOf(_tokenId));
+            revert NotNftOwner(
+                msg.sender,
+                IERC721(_nftAddress).ownerOf(_tokenId)
+            );
         }
     }
 
@@ -162,10 +162,7 @@ contract AfricarareNFTMarketplace is
     }
 
     //@dev: This is a gas optimislation trick reusing function instead of require in modifier
-    function beforeOnlyListedNFT(ListNFT memory _listedNFT)
-        internal
-        pure
-    {
+    function beforeOnlyListedNFT(ListNFT memory _listedNFT) internal pure {
         //TODO: Move to storage contract
         //FIXME: move this zero check somewhere better or remove it for explicit zero check modifier?
         if (_listedNFT.seller == address(0)) {
@@ -182,10 +179,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    function beforeNonListedNFT(ListNFT memory _listedNFT)
-        internal
-        pure
-    {
+    function beforeNonListedNFT(ListNFT memory _listedNFT) internal pure {
         //TODO: Move to storage contract
         if (_listedNFT.seller != address(0) && _listedNFT.sold) {
             revert ItemIsAlreadyListed(_listedNFT);
@@ -197,10 +191,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    function beforeOnlyAuctioned(AuctionNFT memory _auction)
-        internal
-        pure
-    {
+    function beforeOnlyAuctioned(AuctionNFT memory _auction) internal pure {
         //TODO: Move to storage contract
         if (_auction.nft == address(0)) {
             revert AddressIsZero(_auction.nft);
@@ -215,10 +206,7 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    function beforeNonAuctioned(AuctionNFT memory _auction)
-        internal
-        pure
-    {
+    function beforeNonAuctioned(AuctionNFT memory _auction) internal pure {
         if (_auction.nft != address(0) && !_auction.complete) {
             revert ItemIsAlreadyAuctioned(_auction);
         }
@@ -240,17 +228,14 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    function beforeOnlyNFTOffer(OfferNFT memory _offer)
-    internal pure
-    {
-      //TODO: Move to storage contract
-      if (_offer.offerPrice <= 0 || _offer.offerer == address(0)) {
-        revert ItemIsNotOffered(_offer);
-      }
+    function beforeOnlyNFTOffer(OfferNFT memory _offer) internal pure {
+        //TODO: Move to storage contract
+        if (_offer.offerPrice <= 0 || _offer.offerer == address(0)) {
+            revert ItemIsNotOffered(_offer);
+        }
     }
 
-    modifier onlyNFTOffer(OfferNFT memory _offer)
-    {
+    modifier onlyNFTOffer(OfferNFT memory _offer) {
         beforeOnlyNFTOffer(_offer);
         _;
     }
@@ -263,10 +248,7 @@ contract AfricarareNFTMarketplace is
             revert NotOfferer(_offer.offerer, _sender);
     }
 
-    modifier onlyNFTOfferOwner(
-        OfferNFT memory _offer,
-        address _sender
-    ) {
+    modifier onlyNFTOfferOwner(OfferNFT memory _offer, address _sender) {
         beforeOnlyNFTOfferOwner(_offer, _sender);
         _;
     }
@@ -285,6 +267,7 @@ contract AfricarareNFTMarketplace is
         beforeNonAcceptedOffer(_offer, _sender);
         _;
     }
+
     function beforeOnlyPayableToken(address _payToken) internal view {
         //     TODO: Move to storage contract
         if (_payToken == address(0)) {
@@ -466,12 +449,14 @@ contract AfricarareNFTMarketplace is
         );
     }
 
-
     // @notice Offerer cancel offering
     function cancelOfferForNFT(address _nftAddress, uint256 _tokenId)
         external
         onlyNFTOffer(offerNfts[_nftAddress][_tokenId][msg.sender])
-        onlyNFTOfferOwner(offerNfts[_nftAddress][_tokenId][msg.sender], msg.sender)
+        onlyNFTOfferOwner(
+            offerNfts[_nftAddress][_tokenId][msg.sender],
+            msg.sender
+        )
         nonAcceptedOffer(
             offerNfts[_nftAddress][_tokenId][msg.sender],
             msg.sender
@@ -491,7 +476,6 @@ contract AfricarareNFTMarketplace is
             msg.sender
         );
     }
-
 
     // @notice listed NFT owner accept offering
     function acceptOfferForNFT(
@@ -657,9 +641,7 @@ contract AfricarareNFTMarketplace is
         address _nftAddress,
         uint256 _tokenId,
         uint256 _bidPrice
-    ) external
-      onlyAuctioned(auctionNfts[_nftAddress][_tokenId])
-      nonReentrant {
+    ) external onlyAuctioned(auctionNfts[_nftAddress][_tokenId]) nonReentrant {
         //TODO: Move to storage contract
         // solhint-disable-next-line not-rely-on-time
         if (block.timestamp < auctionNfts[_nftAddress][_tokenId].startTime) {
