@@ -173,7 +173,7 @@ contract AfricarareNFTMarketplace is
         }
         //TODO: Move to storage contract
         if (_listedNFT.sold) {
-            revert ItemIsSoldStruct(_listedNFT);
+            revert ItemIsSold(_listedNFT);
         }
     }
 
@@ -384,10 +384,6 @@ contract AfricarareNFTMarketplace is
         //TODO: Move to storage contract
         ListNFT memory listedNft = listNfts[_nftAddress][_tokenId];
 
-        if (listedNft.sold) {
-            revert ItemIsSold(_nftAddress, _tokenId);
-        }
-
         if (_price < listedNft.price) {
             revert InsufficientBalance(_price, listedNft.price);
         }
@@ -527,14 +523,6 @@ contract AfricarareNFTMarketplace is
         OfferNFT storage offer = offerNfts[_nftAddress][_tokenId][_offerer];
         //TODO: Move to storage contract
         ListNFT storage list = listNfts[offer.nft][offer.tokenId];
-
-        if (list.sold) {
-            revert ItemIsSold(_nftAddress, _tokenId);
-        }
-
-        if (offer.accepted) {
-            revert OfferAlreadyAccepted(_offerer, msg.sender);
-        }
 
         list.sold = true;
         offer.accepted = true;
