@@ -45,7 +45,6 @@ import {MarketplaceEvents} from "./events/events.sol";
     @dev: Support Royalty,
     @TODO: Support ERC1155,
     @TODO: Store assets in storage contract,
-    @TODO: Remove require statements for custom errs,
     @TODO: end to end unit test all custom errors and exceptions
     @TODO: clean up offer, list logic
     @TODO: add timestamps to structs and events
