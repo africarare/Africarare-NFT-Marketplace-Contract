@@ -112,7 +112,10 @@ contract AfricarareNFTMarketplace is
     )
         external
         nonReentrant
-        onlyAfricarareNFT(africarareNFTFactory.onlyAfricarareNFT(_nftAddress), _nftAddress)
+        onlyAfricarareNFT(
+            africarareNFTFactory.onlyAfricarareNFT(_nftAddress),
+            _nftAddress
+        )
         onlyPayableToken(payableTokens[_payToken])
         onlyNFTOwner(IERC721(_nftAddress).ownerOf(_tokenId), msg.sender)
     {

@@ -65,19 +65,16 @@ abstract contract MarketplaceValidators {
         _;
     }
 
-    function beforeOnlyAfricarareNFT(
-        bool _isAfricarareNFT,
-        address _nftAddress
-    ) internal pure {
+    function beforeOnlyAfricarareNFT(bool _isAfricarareNFT, address _nftAddress)
+        internal
+        pure
+    {
         if (!_isAfricarareNFT) {
             revert NotAfricarareNFT(_nftAddress);
         }
     }
 
-    modifier onlyAfricarareNFT(
-        bool _isAfricarareNFT,
-        address _nftAddress
-    ) {
+    modifier onlyAfricarareNFT(bool _isAfricarareNFT, address _nftAddress) {
         beforeOnlyAfricarareNFT(_isAfricarareNFT, _nftAddress);
         _;
     }

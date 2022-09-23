@@ -9,8 +9,6 @@ import "../structures/structs.sol";
 // @param available balance available.
 // @param required requested amount to transfer.
 
-
-
 //zero checks
 error AddressIsZero(address _address);
 error ZeroAddress();
