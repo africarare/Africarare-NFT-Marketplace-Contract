@@ -212,6 +212,25 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+    function beforeNonStartedAuction(
+        AuctionNFT memory _auction,
+        uint256 _timestamp
+    ) internal pure {
+        if (_timestamp >= _auction.startTime) {
+            // solhint-disable-next-line not-rely-on-time
+            revert AuctionIsStarted(_auction, _timestamp);
+        }
+    }
+
+    modifier nonStartedAuction(
+        AuctionNFT memory _auction,
+        uint256 _timestamp
+    ) {
+        beforeNonStartedAuction(_auction, _timestamp);
+        _;
+    }
+
+
     function beforeOnlyFinishedAuction(
         AuctionNFT memory _auction,
         uint256 _timestamp
@@ -688,7 +707,7 @@ contract AfricarareNFTMarketplace is
     function cancelAuction(address _nftAddress, uint256 _tokenId)
         external
         onlyAuctioned(auctionNfts[_nftAddress][_tokenId])
-        // nonStartedAuction(auctionNfts[_nftAddress][_tokenId])
+        nonStartedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
         nonReentrant
     {
         //TODO: Move to storage contract
@@ -706,13 +725,6 @@ contract AfricarareNFTMarketplace is
         //AuctionIsNotComplete
         //BidTooLow
         //notAuthorisedToCallAuction
-
-        //FIXME: modifier validation pattern
-        // solhint-disable-next-line not-rely-on-time
-        if (block.timestamp >= auction.startTime) {
-            // solhint-disable-next-line not-rely-on-time
-            revert AuctionIsStarted(auction, block.timestamp);
-        }
 
         //FIXME: modifier validation pattern
         if (auction.lastBidder != address(0)) {
