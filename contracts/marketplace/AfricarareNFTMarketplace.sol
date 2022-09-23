@@ -281,18 +281,6 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    // function beforeNonListedNFT(ListNFT memory _listing) internal pure {
-    //     //TODO: Move to storage contract
-    //     if (_listing.seller != address(0) && _listing.sold) {
-    //         revert ItemIsAlreadyListed(_listing);
-    //     }
-
-    // }
-    // modifier onlyTranferAmountRequired(ListNFT memory _listing) {
-    //     beforeOnlyTransferAmountRequired(_listing);
-    //     _;
-    // }
-
     function beforeOnlyAuctioned(AuctionNFT memory _auction) internal pure {
         //TODO: Move to storage contract
         if (_auction.nft == address(0)) {
@@ -707,6 +695,7 @@ contract AfricarareNFTMarketplace is
     function cancelAuction(address _nftAddress, uint256 _tokenId)
         external
         onlyAuctioned(auctionNfts[_nftAddress][_tokenId])
+        // solhint-disable-next-line not-rely-on-time
         nonStartedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
         nonReentrant
     {
@@ -755,6 +744,7 @@ contract AfricarareNFTMarketplace is
         nonReentrant
         // solhint-disable-next-line not-rely-on-time
         nonFinishedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
+        // solhint-disable-next-line not-rely-on-time
         onlyStartedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
     {
         //FIXME: modifier validation pattern
