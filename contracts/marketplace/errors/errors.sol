@@ -3,22 +3,26 @@
 pragma solidity 0.8.7;
 
 import "../structures/structs.sol";
-//ERRORS
+
+//TODO: Document
 // Insufficient balance for transfer. Needed `required` but only `available` available.
 // @param available balance available.
 // @param required requested amount to transfer.
+
+
+
 //zero checks
 error AddressIsZero(address _address);
 error ZeroAddress();
 //payments
 error PaymentTokenAlreadyExists(address paytoken);
-error NotValidPaymentToken(address paytoken);
+error NotValidPaymentToken();
 //fees & royalty
 error NotAfricarareNFT(address nft);
 error PlatformFeeExceedLimit(uint256 platformFee, uint256 requiredLessThan);
 error RoyaltyMaxExceeded(uint256 given, uint256 max);
 //owner
-error NotNftOwner(address sender, address nftOwner);
+error NotNftOwner(address nftOwner, address sender);
 //listing
 error NotListedNft();
 error NotListedNftOwner(ListNFT, address sender);

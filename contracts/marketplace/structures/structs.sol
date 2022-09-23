@@ -2,6 +2,10 @@
 // Author: Africarare
 pragma solidity 0.8.7;
 
+struct PayableTokens {
+    address[] payableTokens;
+}
+
 struct ListNFT {
     address nft;
     uint256 tokenId;
