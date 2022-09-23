@@ -11,7 +11,6 @@ import "../structures/structs.sol";
 error AddressIsZero(address _address);
 error ZeroAddress();
 //payments
-error InsufficientBalance(uint256 available, uint256 required);
 error PaymentTokenAlreadyExists(address paytoken);
 error NotValidPaymentToken(address paytoken);
 //fees & royalty
@@ -20,12 +19,13 @@ error PlatformFeeExceedLimit(uint256 platformFee, uint256 requiredLessThan);
 error RoyaltyMaxExceeded(uint256 given, uint256 max);
 //owner
 error NotNftOwner(address sender, address nftOwner);
-error NotListedNftOwner(address sender, address nftOwner);
 //listing
 error NotListedNft();
+error NotListedNftOwner(ListNFT, address nftOwner);
 error ItemIsSold(ListNFT);
 error ItemIsAlreadyListed(ListNFT);
 error ItemIsNotListed(address nft, uint256 tokenId);
+error InsufficientBalanceForItem(ListNFT, uint256 required);
 //offers
 error NotOfferer(address offerer, address sender);
 error OfferAlreadyAccepted(address offerer, address sender);

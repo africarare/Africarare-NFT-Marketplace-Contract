@@ -101,15 +101,6 @@ contract AfricarareNFTMarketplace is
         africarareNFTFactory = _africarareNFTFactory;
     }
 
-    function _sufficientBalance(uint256 price, uint256 offer) internal pure {
-        if (price > offer) revert InsufficientBalance(price, offer);
-    }
-
-    modifier sufficientBalance(uint256 price, uint256 offer) {
-        _sufficientBalance(price, offer);
-        _;
-    }
-
     function notZeroAddress(address _address) internal pure {
         if (_address == address(0)) {
             revert AddressIsZero(_address);
@@ -121,15 +112,33 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    function beforeOnlyListedNFTOwner(ListNFT memory _listing) internal view {
+
+        // //FIXME: modifier pattern
+        // if (_price < listedNft.price) {
+        //     revert InsufficientBalance(_price, listedNft.price);
+        // }
+    function beforeOnlySufficientTransferAmount(ListNFT memory _listing, uint256 _amountSent) internal pure {
         //TODO: Move to storage contract
-        if (_listing.seller != msg.sender) {
-            revert NotListedNftOwner(msg.sender, _listing.seller);
+      if (_amountSent < _listing.price) {
+            revert InsufficientBalanceForItem(_listing, _amountSent);
+        }
+
+    }
+
+    modifier onlySufficientTransferAmount(ListNFT memory _listing, uint256 _amountSent) {
+        beforeOnlySufficientTransferAmount(_listing, _amountSent);
+        _;
+    }
+
+    function beforeOnlyListedNFTOwner(ListNFT memory _listing, address _sender) internal pure {
+        //TODO: Move to storage contract
+        if (_listing.seller != _sender) {
+            revert NotListedNftOwner(_listing, _sender);
         }
     }
 
-    modifier onlyListedNFTOwner(ListNFT memory _listing) {
-        beforeOnlyListedNFTOwner(_listing);
+    modifier onlyListedNFTOwner(ListNFT memory _listing, address _sender) {
+        beforeOnlyListedNFTOwner(_listing, _sender);
         _;
     }
 
@@ -222,14 +231,10 @@ contract AfricarareNFTMarketplace is
         }
     }
 
-    modifier nonStartedAuction(
-        AuctionNFT memory _auction,
-        uint256 _timestamp
-    ) {
+    modifier nonStartedAuction(AuctionNFT memory _auction, uint256 _timestamp) {
         beforeNonStartedAuction(_auction, _timestamp);
         _;
     }
-
 
     function beforeOnlyFinishedAuction(
         AuctionNFT memory _auction,
@@ -418,7 +423,7 @@ contract AfricarareNFTMarketplace is
     function cancelListedNFT(address _nftAddress, uint256 _tokenId)
         external
         onlyListedNFT(listNfts[_nftAddress][_tokenId])
-        onlyListedNFTOwner(listNfts[_nftAddress][_tokenId])
+        onlyListedNFTOwner(listNfts[_nftAddress][_tokenId], msg.sender)
     {
         //TODO: Move to storage contract
         delete listNfts[_nftAddress][_tokenId];
@@ -437,6 +442,7 @@ contract AfricarareNFTMarketplace is
         uint256 _price
     )
         external
+        onlySufficientTransferAmount(listNfts[_nftAddress][_tokenId], _price)
         onlyListedNFT(listNfts[_nftAddress][_tokenId])
         onlyPayableToken(_payToken)
         nonReentrant
@@ -444,10 +450,6 @@ contract AfricarareNFTMarketplace is
         //TODO: Move to storage contract
         ListNFT memory listedNft = listNfts[_nftAddress][_tokenId];
 
-        //FIXME: modifier pattern
-        if (_price < listedNft.price) {
-            revert InsufficientBalance(_price, listedNft.price);
-        }
 
         listedNft.sold = true;
 
@@ -576,7 +578,7 @@ contract AfricarareNFTMarketplace is
         external
         onlyNFTOffer(offerNfts[_nftAddress][_tokenId][_offerer])
         onlyListedNFT(listNfts[_nftAddress][_tokenId])
-        onlyListedNFTOwner(listNfts[_nftAddress][_tokenId])
+        onlyListedNFTOwner(listNfts[_nftAddress][_tokenId], msg.sender)
         nonAcceptedOffer(offerNfts[_nftAddress][_tokenId][_offerer], _offerer)
         nonZeroAddress(_offerer)
         nonReentrant
@@ -706,14 +708,6 @@ contract AfricarareNFTMarketplace is
         if (auction.creator != msg.sender) {
             revert NotAuctionCreator(msg.sender, auction.creator);
         }
-        //NotAuctionCreator
-        //AuctionIsNotStarted
-        //AuctionIsStarted
-        //AuctionHasBidders
-        // AuctionIsComplete
-        //AuctionIsNotComplete
-        //BidTooLow
-        //notAuthorisedToCallAuction
 
         //FIXME: modifier validation pattern
         if (auction.lastBidder != address(0)) {
