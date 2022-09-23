@@ -112,25 +112,32 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-
-        // //FIXME: modifier pattern
-        // if (_price < listedNft.price) {
-        //     revert InsufficientBalance(_price, listedNft.price);
-        // }
-    function beforeOnlySufficientTransferAmount(ListNFT memory _listing, uint256 _amountSent) internal pure {
+    // //FIXME: modifier pattern
+    // if (_price < listedNft.price) {
+    //     revert InsufficientBalance(_price, listedNft.price);
+    // }
+    function beforeOnlySufficientTransferAmount(
+        ListNFT memory _listing,
+        uint256 _amountSent
+    ) internal pure {
         //TODO: Move to storage contract
-      if (_amountSent < _listing.price) {
+        if (_amountSent < _listing.price) {
             revert InsufficientBalanceForItem(_listing, _amountSent);
         }
-
     }
 
-    modifier onlySufficientTransferAmount(ListNFT memory _listing, uint256 _amountSent) {
+    modifier onlySufficientTransferAmount(
+        ListNFT memory _listing,
+        uint256 _amountSent
+    ) {
         beforeOnlySufficientTransferAmount(_listing, _amountSent);
         _;
     }
 
-    function beforeOnlyListedNFTOwner(ListNFT memory _listing, address _sender) internal pure {
+    function beforeOnlyListedNFTOwner(ListNFT memory _listing, address _sender)
+        internal
+        pure
+    {
         //TODO: Move to storage contract
         if (_listing.seller != _sender) {
             revert NotListedNftOwner(_listing, _sender);
@@ -200,30 +207,19 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-
-
-        //     //FIXME: modifier validation pattern
-        // if (_endTime <= _startTime) {
-        //     revert NotValidAuctionDuration(_startTime, _endTime);
-        // }
-
     function beforeOnlyValidAuctionDuration(
-      uint256 _startTime,
-      uint256 _endTime
+        uint256 _startTime,
+        uint256 _endTime
     ) internal pure {
         if (_endTime <= _startTime) {
             revert NotValidAuctionDuration(_startTime, _endTime);
         }
     }
 
-    modifier onlyValidAuctionDuration(
-      uint256 _startTime,
-      uint256 _endTime
-    ) {
+    modifier onlyValidAuctionDuration(uint256 _startTime, uint256 _endTime) {
         beforeOnlyValidAuctionDuration(_startTime, _endTime);
         _;
     }
-
 
     function beforeOnlyStartedAuction(
         AuctionNFT memory _auction,
@@ -475,7 +471,6 @@ contract AfricarareNFTMarketplace is
         //TODO: Move to storage contract
         ListNFT memory listedNft = listNfts[_nftAddress][_tokenId];
 
-
         listedNft.sold = true;
 
         uint256 totalPrice = _price;
@@ -680,7 +675,6 @@ contract AfricarareNFTMarketplace is
         nonAuctioned(auctionNfts[_nftAddress][_tokenId])
         nonReentrant
     {
-
         //TODO: Move to storage contract
         auctionNfts[_nftAddress][_tokenId] = AuctionNFT({
             nft: _nftAddress,
