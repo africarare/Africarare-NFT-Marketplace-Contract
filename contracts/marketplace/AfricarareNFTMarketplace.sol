@@ -276,7 +276,23 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    // auctionNfts[_nftAddress][_tokenId]
+    function beforeOnlySufficientBidAmount(
+        AuctionNFT memory _auction,
+        uint256 _bidAmount
+    ) internal pure {
+        if (_bidAmount <= _auction.highestBid + _auction.minBid) {
+            revert BidTooLow(_bidAmount, _auction.minBid);
+        }
+    }
+
+    modifier onlySufficientBidAmount(
+        AuctionNFT memory _auction,
+        uint256 _bidAmount
+    ) {
+        beforeOnlySufficientBidAmount(_auction, _bidAmount);
+        _;
+    }
+
     function beforeNonFinishedAuction(
         AuctionNFT memory _auction,
         uint256 _timestamp
@@ -357,16 +373,6 @@ contract AfricarareNFTMarketplace is
         beforeNonBiddedAuction(_auction);
         _;
     }
-
-    // //FIXME: modifier validation pattern
-    //   if (auction.creator != msg.sender) {
-    //       revert NotAuctionCreator(msg.sender, auction.creator);
-    //   }
-
-    //   //FIXME: modifier validation pattern
-    //   if (auction.lastBidder != address(0)) {
-    //       revert AuctionHasBidders(_auction);
-    //   }
 
     function _validOfferPrice(uint256 _offerPrice) internal pure {
         if (_offerPrice <= 0) {
@@ -786,20 +792,8 @@ contract AfricarareNFTMarketplace is
         nonFinishedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
         // solhint-disable-next-line not-rely-on-time
         onlyStartedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
+        onlySufficientBidAmount(auctionNfts[_nftAddress][_tokenId], _bidPrice)
     {
-        //FIXME: modifier validation pattern
-        //TODO: Move to storage contract
-        if (
-            _bidPrice <=
-            auctionNfts[_nftAddress][_tokenId].highestBid +
-                auctionNfts[_nftAddress][_tokenId].minBid
-        ) {
-            revert BidTooLow(
-                _bidPrice,
-                auctionNfts[_nftAddress][_tokenId].minBid
-            );
-        }
-
         //TODO: Move to storage contract
         AuctionNFT storage auction = auctionNfts[_nftAddress][_tokenId];
         IERC20 payToken = IERC20(auction.payToken);
