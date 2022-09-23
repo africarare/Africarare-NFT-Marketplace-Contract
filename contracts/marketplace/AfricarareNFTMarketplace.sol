@@ -191,6 +191,27 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
+    function beforeOnlyStartedAuction(
+        AuctionNFT memory _auction,
+        uint256 _timestamp
+    ) internal pure {
+        if (_timestamp < _auction.startTime) {
+            revert AuctionIsNotStarted(
+                // solhint-disable-next-line not-rely-on-time
+                _auction,
+                _timestamp
+            );
+        }
+    }
+
+    modifier onlyStartedAuction(
+        AuctionNFT memory _auction,
+        uint256 _timestamp
+    ) {
+        beforeOnlyStartedAuction(_auction, _timestamp);
+        _;
+    }
+
     function beforeOnlyFinishedAuction(
         AuctionNFT memory _auction,
         uint256 _timestamp
@@ -667,6 +688,7 @@ contract AfricarareNFTMarketplace is
     function cancelAuction(address _nftAddress, uint256 _tokenId)
         external
         onlyAuctioned(auctionNfts[_nftAddress][_tokenId])
+        // nonStartedAuction(auctionNfts[_nftAddress][_tokenId])
         nonReentrant
     {
         //TODO: Move to storage contract
@@ -689,7 +711,7 @@ contract AfricarareNFTMarketplace is
         // solhint-disable-next-line not-rely-on-time
         if (block.timestamp >= auction.startTime) {
             // solhint-disable-next-line not-rely-on-time
-            revert AuctionIsStarted(block.timestamp, auction.startTime);
+            revert AuctionIsStarted(auction, block.timestamp);
         }
 
         //FIXME: modifier validation pattern
@@ -721,18 +743,8 @@ contract AfricarareNFTMarketplace is
         nonReentrant
         // solhint-disable-next-line not-rely-on-time
         nonFinishedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
+        onlyStartedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
     {
-        //TODO: Move to storage contract
-        //FIXME: modifier validation pattern
-        // solhint-disable-next-line not-rely-on-time
-        if (block.timestamp < auctionNfts[_nftAddress][_tokenId].startTime) {
-            revert AuctionIsNotStarted(
-                // solhint-disable-next-line not-rely-on-time
-                block.timestamp,
-                auctionNfts[_nftAddress][_tokenId].startTime
-            );
-        }
-
         //FIXME: modifier validation pattern
         //TODO: Move to storage contract
         if (
