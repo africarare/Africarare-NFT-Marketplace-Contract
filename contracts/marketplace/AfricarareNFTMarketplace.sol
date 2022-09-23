@@ -101,21 +101,17 @@ contract AfricarareNFTMarketplace is
         africarareNFTFactory = _africarareNFTFactory;
     }
 
-    function notZeroAddress(address _address) internal pure {
+    function beforeNonZeroAddress(address _address) internal pure {
         if (_address == address(0)) {
             revert AddressIsZero(_address);
         }
     }
 
     modifier nonZeroAddress(address _address) {
-        notZeroAddress(_address);
+        beforeNonZeroAddress(_address);
         _;
     }
 
-    // //FIXME: modifier pattern
-    // if (_price < listedNft.price) {
-    //     revert InsufficientBalance(_price, listedNft.price);
-    // }
     function beforeOnlySufficientTransferAmount(
         ListNFT memory _listing,
         uint256 _amountSent
@@ -371,6 +367,34 @@ contract AfricarareNFTMarketplace is
 
     modifier nonBiddedAuction(AuctionNFT memory _auction) {
         beforeNonBiddedAuction(_auction);
+        _;
+    }
+
+    function beforeOnlyAuthorisedAuctionCaller(
+        AuctionNFT memory _auction,
+        address _marketplaceOwner,
+        address _sender
+    ) internal pure {
+        if (
+            _sender != _marketplaceOwner &&
+            _sender != _auction.creator &&
+            _sender != _auction.lastBidder
+        ) {
+            revert notAuthorisedToCallAuction(
+                _sender,
+                _marketplaceOwner,
+                _auction.creator,
+                _auction.lastBidder
+            );
+        }
+    }
+
+    modifier onlyAuthorisedAuctionCaller(
+        AuctionNFT memory _auction,
+        address _marketplaceOwner,
+        address _sender
+    ) {
+        beforeOnlyAuthorisedAuctionCaller(_auction, _marketplaceOwner, _sender);
         _;
     }
 
@@ -826,41 +850,35 @@ contract AfricarareNFTMarketplace is
         nonCalledAuction(auctionNfts[_nftAddress][_tokenId])
         // solhint-disable-next-line not-rely-on-time
         onlyFinishedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
+        onlyAuthorisedAuctionCaller(
+            auctionNfts[_nftAddress][_tokenId],
+            owner(),
+            msg.sender
+        )
     {
         //TODO: Move to storage contract
         AuctionNFT storage auction = auctionNfts[_nftAddress][_tokenId];
-
-        //FIXME: modifier validation pattern
-        if (
-            msg.sender != owner() &&
-            msg.sender != auction.creator &&
-            msg.sender != auction.lastBidder
-        ) {
-            revert notAuthorisedToCallAuction(
-                msg.sender,
-                owner(),
-                auction.creator,
-                auction.lastBidder
-            );
-        }
-
-        IERC20 payToken = IERC20(auction.payToken);
-        IERC721 nft = IERC721(auction.nft);
 
         auction.called = true;
         auction.winner = auction.lastBidder;
 
         IAfricarareNFT africarareNft = IAfricarareNFT(_nftAddress);
         address royaltyRecipient = africarareNft.getRoyaltyRecipient();
-        uint256 royaltyFee = africarareNft.getRoyaltyFee();
 
         uint256 highestBid = auction.highestBid;
+        //FIXME: determine if this is safe
         uint256 totalPrice = highestBid;
 
-        if (royaltyFee > 0) {
-            uint256 royaltyTotal = calculateRoyaltyFee(royaltyFee, highestBid);
+        if (africarareNft.getRoyaltyFee() > 0) {
+            uint256 royaltyTotal = calculateRoyaltyFee(
+                africarareNft.getRoyaltyFee(),
+                highestBid
+            );
             // Transfer royalty fee to collection owner
-            payToken.safeTransfer(royaltyRecipient, royaltyTotal);
+            IERC20(auction.payToken).safeTransfer(
+                royaltyRecipient,
+                royaltyTotal
+            );
             totalPrice -= royaltyTotal;
         }
 
@@ -869,13 +887,21 @@ contract AfricarareNFTMarketplace is
             highestBid,
             platformFee
         );
-        payToken.safeTransfer(feeRecipient, platformFeeTotal);
+        //Transfer to the platform
+        IERC20(auction.payToken).safeTransfer(feeRecipient, platformFeeTotal);
 
         // Transfer to auction creator
-        payToken.safeTransfer(auction.creator, totalPrice - platformFeeTotal);
+        IERC20(auction.payToken).safeTransfer(
+            auction.creator,
+            totalPrice - platformFeeTotal
+        );
 
         // Transfer NFT to the winner
-        nft.safeTransferFrom(address(this), auction.winner, auction.tokenId);
+        IERC721(auction.nft).safeTransferFrom(
+            address(this),
+            auction.winner,
+            auction.tokenId
+        );
 
         emit ResultedAuction(
             _nftAddress,
