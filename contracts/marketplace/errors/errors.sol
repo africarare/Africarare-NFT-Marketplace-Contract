@@ -7,27 +7,37 @@ import "../structures/structs.sol";
 // Insufficient balance for transfer. Needed `required` but only `available` available.
 // @param available balance available.
 // @param required requested amount to transfer.
-error InsufficientBalance(uint256 available, uint256 required);
-error NotListedNft();
-error PlatformFeeExceedLimit(uint256 platformFee, uint256 requiredLessThan);
-error NotOfferer(address offerer, address sender);
-error OfferAlreadyAccepted(address offerer, address sender);
-error ItemIsSold(ListNFT);
+//zero checks
 error AddressIsZero(address _address);
-error NotAfricarareNFT(address nft);
-error ItemIsAlreadyListed(ListNFT);
-error ItemIsNotListed(address nft, uint256 tokenId);
-error ItemIsAlreadyAuctioned(AuctionNFT);
-error AuctionsIsCalled(AuctionNFT);
-error ItemIsNotOffered(OfferNFT);
-error NotNftOwner(address sender, address nftOwner);
-error NotListedNftOwner(address sender, address nftOwner);
-error OfferPriceTooLow(uint256 listPrice);
-error NotValidAuctionDuration(uint256 startTime, uint256 endTime);
+error ZeroAddress();
+//payments
+error InsufficientBalance(uint256 available, uint256 required);
 error PaymentTokenAlreadyExists(address paytoken);
 error NotValidPaymentToken(address paytoken);
-error AuctionIsComplete(address nft, uint256 tokenId);
-error AuctionIsNotComplete(address nft, uint256 tokenId);
+//fees & royalty
+error NotAfricarareNFT(address nft);
+error PlatformFeeExceedLimit(uint256 platformFee, uint256 requiredLessThan);
+error RoyaltyMaxExceeded(uint256 given, uint256 max);
+//owner
+error NotNftOwner(address sender, address nftOwner);
+error NotListedNftOwner(address sender, address nftOwner);
+//listing
+error NotListedNft();
+error ItemIsSold(ListNFT);
+error ItemIsAlreadyListed(ListNFT);
+error ItemIsNotListed(address nft, uint256 tokenId);
+//offers
+error NotOfferer(address offerer, address sender);
+error OfferAlreadyAccepted(address offerer, address sender);
+error OfferPriceTooLow(uint256 listPrice);
+error ItemIsNotOffered(OfferNFT);
+//auction
+error ItemIsAlreadyAuctioned(AuctionNFT);
+error NotValidAuctionDuration(uint256 startTime, uint256 endTime);
+error AuctionIsCalled(AuctionNFT);
+error AuctionIsNotCalled(AuctionNFT);
+error AuctionIsFinished(AuctionNFT, uint256 blockTimestamp);
+error AuctionIsNotFinished(AuctionNFT, uint256 blockTimestamp);
 error AuctionHasStarted(uint256 blockTimestamp, uint256 auctionStartTime);
 error AuctionHasNotStarted(uint256 blockTimestamp, uint256 auctionStartTime);
 error AuctionHasBidders(address lastBidder);
@@ -39,6 +49,5 @@ error notAuthorisedToCallAuction(
     address nftCreator,
     address auctionWinner
 );
-error ZeroAddress();
+//admin
 error isLockedContract();
-error RoyaltyMaxExceeded(uint256 given, uint256 max);
