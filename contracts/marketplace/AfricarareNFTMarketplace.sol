@@ -191,28 +191,41 @@ contract AfricarareNFTMarketplace is
         _;
     }
 
-    function beforeOnlyFinishedAuction(AuctionNFT memory _auction, uint256 _timestamp) internal pure {
+    function beforeOnlyFinishedAuction(
+        AuctionNFT memory _auction,
+        uint256 _timestamp
+    ) internal pure {
         //TODO: Move to storage contract
         // solhint-disable-next-line not-rely-on-time
         if (_timestamp <= _auction.endTime) {
             revert AuctionIsNotFinished(_auction, _timestamp);
         }
-
     }
-    modifier onlyFinishedAuction(AuctionNFT memory _auction, uint256 _timestamp) {
+
+    modifier onlyFinishedAuction(
+        AuctionNFT memory _auction,
+        uint256 _timestamp
+    ) {
         beforeOnlyFinishedAuction(_auction, _timestamp);
         _;
     }
-// auctionNfts[_nftAddress][_tokenId]
-    function beforeNonFinishedAuction(AuctionNFT memory _auction, uint256 _timestamp) internal pure {
+
+    // auctionNfts[_nftAddress][_tokenId]
+    function beforeNonFinishedAuction(
+        AuctionNFT memory _auction,
+        uint256 _timestamp
+    ) internal pure {
         //TODO: Move to storage contract
         // solhint-disable-next-line not-rely-on-time
         if (_timestamp >= _auction.endTime) {
             revert AuctionIsFinished(_auction, _timestamp);
         }
-
     }
-    modifier nonFinishedAuction(AuctionNFT memory _auction, uint256 _timestamp) {
+
+    modifier nonFinishedAuction(
+        AuctionNFT memory _auction,
+        uint256 _timestamp
+    ) {
         beforeNonFinishedAuction(_auction, _timestamp);
         _;
     }
@@ -221,14 +234,12 @@ contract AfricarareNFTMarketplace is
         if (_auction.called) {
             revert AuctionIsCalled(_auction);
         }
-
     }
+
     modifier nonCalledAuction(AuctionNFT memory _auction) {
         beforeNonCalledAuction(_auction);
         _;
     }
-
-
 
     // function beforeNonListedNFT(ListNFT memory _listing) internal pure {
     //     //TODO: Move to storage contract
@@ -241,8 +252,6 @@ contract AfricarareNFTMarketplace is
     //     beforeOnlyTransferAmountRequired(_listing);
     //     _;
     // }
-
-
 
     function beforeOnlyAuctioned(AuctionNFT memory _auction) internal pure {
         //TODO: Move to storage contract
@@ -615,7 +624,7 @@ contract AfricarareNFTMarketplace is
         onlyNFTOwner(_nftAddress, _tokenId)
         nonReentrant
     {
-      //FIXME: modifier validation pattern
+        //FIXME: modifier validation pattern
         if (_endTime <= _startTime) {
             revert NotValidAuctionDuration(_startTime, _endTime);
         }
@@ -663,7 +672,7 @@ contract AfricarareNFTMarketplace is
         //TODO: Move to storage contract
         AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
 
-      //FIXME: modifier validation pattern
+        //FIXME: modifier validation pattern
         if (auction.creator != msg.sender) {
             revert NotAuctionCreator(msg.sender, auction.creator);
         }
@@ -676,14 +685,14 @@ contract AfricarareNFTMarketplace is
         //BidTooLow
         //notAuthorisedToCallAuction
 
-      //FIXME: modifier validation pattern
+        //FIXME: modifier validation pattern
         // solhint-disable-next-line not-rely-on-time
         if (block.timestamp >= auction.startTime) {
             // solhint-disable-next-line not-rely-on-time
             revert AuctionHasStarted(block.timestamp, auction.startTime);
         }
 
-      //FIXME: modifier validation pattern
+        //FIXME: modifier validation pattern
         if (auction.lastBidder != address(0)) {
             revert AuctionHasBidders(auction.lastBidder);
         }
@@ -706,12 +715,15 @@ contract AfricarareNFTMarketplace is
         address _nftAddress,
         uint256 _tokenId,
         uint256 _bidPrice
-    ) external onlyAuctioned(auctionNfts[_nftAddress][_tokenId]) nonReentrant
+    )
+        external
+        onlyAuctioned(auctionNfts[_nftAddress][_tokenId])
+        nonReentrant
         // solhint-disable-next-line not-rely-on-time
-nonFinishedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
+        nonFinishedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
     {
         //TODO: Move to storage contract
-      //FIXME: modifier validation pattern
+        //FIXME: modifier validation pattern
         // solhint-disable-next-line not-rely-on-time
         if (block.timestamp < auctionNfts[_nftAddress][_tokenId].startTime) {
             revert AuctionHasNotStarted(
@@ -721,7 +733,7 @@ nonFinishedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
             );
         }
 
-      //FIXME: modifier validation pattern
+        //FIXME: modifier validation pattern
         //TODO: Move to storage contract
         if (
             _bidPrice <=
@@ -764,13 +776,13 @@ nonFinishedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
         external
         nonReentrant
         nonCalledAuction(auctionNfts[_nftAddress][_tokenId])
+        // solhint-disable-next-line not-rely-on-time
         onlyFinishedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
     {
-
-      //TODO: Move to storage contract
+        //TODO: Move to storage contract
         AuctionNFT storage auction = auctionNfts[_nftAddress][_tokenId];
 
-      //FIXME: modifier validation pattern
+        //FIXME: modifier validation pattern
         if (
             msg.sender != owner() &&
             msg.sender != auction.creator &&
@@ -783,7 +795,6 @@ nonFinishedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
                 auction.lastBidder
             );
         }
-
 
         IERC20 payToken = IERC20(auction.payToken);
         IERC721 nft = IERC721(auction.nft);
