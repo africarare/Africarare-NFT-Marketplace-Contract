@@ -677,8 +677,8 @@ contract AfricarareNFTMarketplace is
             revert NotAuctionCreator(msg.sender, auction.creator);
         }
         //NotAuctionCreator
-        //AuctionHasNotStarted
-        //AuctionHasStarted
+        //AuctionIsNotStarted
+        //AuctionIsStarted
         //AuctionHasBidders
         // AuctionIsComplete
         //AuctionIsNotComplete
@@ -689,7 +689,7 @@ contract AfricarareNFTMarketplace is
         // solhint-disable-next-line not-rely-on-time
         if (block.timestamp >= auction.startTime) {
             // solhint-disable-next-line not-rely-on-time
-            revert AuctionHasStarted(block.timestamp, auction.startTime);
+            revert AuctionIsStarted(block.timestamp, auction.startTime);
         }
 
         //FIXME: modifier validation pattern
@@ -726,7 +726,7 @@ contract AfricarareNFTMarketplace is
         //FIXME: modifier validation pattern
         // solhint-disable-next-line not-rely-on-time
         if (block.timestamp < auctionNfts[_nftAddress][_tokenId].startTime) {
-            revert AuctionHasNotStarted(
+            revert AuctionIsNotStarted(
                 // solhint-disable-next-line not-rely-on-time
                 block.timestamp,
                 auctionNfts[_nftAddress][_tokenId].startTime
