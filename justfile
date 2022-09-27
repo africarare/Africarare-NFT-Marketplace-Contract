@@ -63,3 +63,5 @@ print-audit:
 	@npm run print-audit
 print-gas-usage:
 	@npm run print-gas-usage
+print-deployments:
+	@cat deployments/deploy.ts

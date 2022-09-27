@@ -1,5 +1,5 @@
 import { run } from "hardhat";
-import { MARKETPLACE_ADDRESS, NFT_FACTORY_ADDRESS, FEE_PERCENTAGE, FEE_RECIPIENT_ADDRESS } from '../cache/deploy';
+import { MARKETPLACE_ADDRESS, NFT_FACTORY_ADDRESS, FEE_PERCENTAGE, FEE_RECIPIENT_ADDRESS } from '../deployments/deploy';
 
 
 

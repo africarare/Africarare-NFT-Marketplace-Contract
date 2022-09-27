@@ -4,6 +4,7 @@ pragma solidity ^0.8.7;
 
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
+//TODO: Implement
 contract TokenStorage is AccessControl {
     bytes32 public constant STORAGE_ADMIN_ROLE =
         keccak256("STORAGE_ADMIN_ROLE");
@@ -52,7 +53,7 @@ contract TokenStorage is AccessControl {
         address lastBidder;
         uint256 highestBid;
         address winner;
-        bool success;
+        bool called;
     }
 
     address public feeAddress;
@@ -69,7 +70,9 @@ contract TokenStorage is AccessControl {
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
         _setupRole(STORAGE_ADMIN_ROLE, _msgSender());
 
-        feeAddress = _feeAddress;
+        if (_feeAddress != address(0)) {
+            feeAddress = _feeAddress;
+        }
         platformFee = _platformFee;
     }
 
@@ -218,7 +221,9 @@ contract TokenStorage is AccessControl {
     }
 
     function setFeeAddress(address _feeAddress) external adminOnly {
-        feeAddress = _feeAddress;
+        if (_feeAddress != address(0)) {
+            feeAddress = _feeAddress;
+        }
     }
 
     function setPlatformFee(uint256 _newPlatformFee) external adminOnly {

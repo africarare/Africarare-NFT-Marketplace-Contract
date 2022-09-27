@@ -9,6 +9,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "../registry/Proxy.sol";
+import "../marketplace/errors/errors.sol";
+import {NFTEvents} from "../marketplace/events/events.sol";
 
 /* Africarare NFT-ERC721 */
 contract AfricarareNFT is
@@ -16,7 +18,8 @@ contract AfricarareNFT is
     ERC721URIStorage,
     ERC721Burnable,
     Ownable,
-    Pausable
+    Pausable,
+    NFTEvents
 {
     using Counters for Counters.Counter;
 
@@ -25,10 +28,6 @@ contract AfricarareNFT is
     uint256 private royaltyFee;
     address private royaltyRecipient;
     bool public lock;
-
-    error ZeroAddress();
-    error isLockedContract();
-    error RoyaltyMaxExceeded(uint256 given, uint256 max);
 
     constructor(
         string memory _name,
@@ -40,9 +39,12 @@ contract AfricarareNFT is
         _notExceedMaxRoyalty(_royaltyFee);
         _notZeroAddress(_owner);
         _notZeroAddress(_royaltyRecipient);
-        royaltyFee = _royaltyFee;
-        royaltyRecipient = _royaltyRecipient;
         transferOwnership(_owner);
+        royaltyFee = _royaltyFee;
+
+        if (_royaltyRecipient != address(0)) {
+            royaltyRecipient = _royaltyRecipient;
+        }
     }
 
     function _notZeroAddress(address _address) internal pure {
@@ -104,6 +106,7 @@ contract AfricarareNFT is
         onlyOwner
         notExceedMaxRoyalty(_royaltyFee)
     {
+        emit UpdatedRoyaltyFee(_royaltyFee);
         royaltyFee = _royaltyFee;
     }
 

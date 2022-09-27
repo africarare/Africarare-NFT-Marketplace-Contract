@@ -30,6 +30,7 @@ import "hardhat/console.sol";
 import "./interfaces/IAfricarareNFTFactory.sol";
 import "./interfaces/IAfricarareNFT.sol";
 import "./errors/errors.sol";
+import "./validation/validators.sol";
 import "./structures/structs.sol";
 import {MarketplaceEvents} from "./events/events.sol";
 
@@ -44,13 +45,14 @@ import {MarketplaceEvents} from "./events/events.sol";
     @dev: Support Royalty,
     @TODO: Support ERC1155,
     @TODO: Store assets in storage contract,
-    @TODO: Remove require statements for custom errs,
     @TODO: end to end unit test all custom errors and exceptions
     @TODO: clean up offer, list logic
     @TODO: add timestamps to structs and events
     @TODO: use safe 1155, 721 interfaces like safe erc20?
     @TODO: remove payable tokens as well as add them
     @TODO: test fee logic math is correctly deducting right amounts
+    @TODO: remove uint256 for uint, let compiler optimise, or at least try
+
 */
 
 contract AfricarareNFTMarketplace is
@@ -58,7 +60,8 @@ contract AfricarareNFTMarketplace is
     ERC1155Holder,
     Ownable,
     ReentrancyGuard,
-    MarketplaceEvents
+    MarketplaceEvents,
+    MarketplaceValidators
 {
     using SafeERC20 for IERC20;
     IAfricarareNFTFactory private immutable africarareNFTFactory;
@@ -66,8 +69,8 @@ contract AfricarareNFTMarketplace is
     uint256 private platformFee;
     address private feeRecipient;
 
-    mapping(address => bool) private payableToken;
-    address[] private tokens;
+    mapping(address => bool) private payableTokens;
+    address[] private paymentTokens;
 
     //TODO: Move to storage contract
     // @dev: nft => tokenId => list struct
@@ -91,87 +94,13 @@ contract AfricarareNFTMarketplace is
     ) {
         if (_platformFee > 1000)
             revert PlatformFeeExceedLimit(_platformFee, 1000);
+
         platformFee = _platformFee;
-        feeRecipient = _feeRecipient;
+
+        if (_feeRecipient != address(0)) {
+            feeRecipient = _feeRecipient;
+        }
         africarareNFTFactory = _africarareNFTFactory;
-    }
-
-    modifier isAfricarareNFT(address _nftAddress) {
-        require(
-            africarareNFTFactory.isAfricarareNFT(_nftAddress),
-            "NotAfricarareNFT"
-        );
-        _;
-    }
-
-    //@dev: This is a gas optimisation trick reusing function instead of require in modifier
-    function _isListedNFT(address _nftAddress, uint256 _tokenId) internal view {
-        //TODO: Move to storage contract
-        if (listNfts[_nftAddress][_tokenId].seller == address(0)) {
-            revert AddressIsZero(_nftAddress, _tokenId);
-        }
-        //TODO: Move to storage contract
-        if (listNfts[_nftAddress][_tokenId].sold) {
-            revert ItemIsSold(_nftAddress, _tokenId);
-        }
-    }
-
-    modifier isListedNFT(address _nftAddress, uint256 _tokenId) {
-        _isListedNFT(_nftAddress, _tokenId);
-        _;
-    }
-
-    modifier isNotListedNFT(address _nftAddress, uint256 _tokenId) {
-        //TODO: Move to storage contract
-        ListNFT memory listedNFT = listNfts[_nftAddress][_tokenId];
-        require(
-            listedNFT.seller == address(0) || listedNFT.sold,
-            "ItemIsAlreadyListed"
-        );
-        _;
-    }
-
-    modifier isAuction(address _nftAddress, uint256 _tokenId) {
-        //TODO: Move to storage contract
-        AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
-        require(
-            auction.nft != address(0) && !auction.success,
-            "ItemIsAlreadyAuctioned"
-        );
-        _;
-    }
-
-    modifier isNotAuction(address _nftAddress, uint256 _tokenId) {
-        //TODO: Move to storage contract
-        AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
-        require(
-            auction.nft == address(0) || auction.success,
-            "ItemIsAlreadyAuctioned"
-        );
-        _;
-    }
-
-    modifier isOfferedNFT(
-        address _nftAddress,
-        uint256 _tokenId,
-        address _offerer
-    ) {
-        //TODO: Move to storage contract
-        OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][_offerer];
-        require(
-            offer.offerPrice > 0 && offer.offerer != address(0),
-            "ItemIsNotOffered"
-        );
-        _;
-    }
-
-    modifier isPayableToken(address _payToken) {
-        require(
-            //TODO: Move to storage contract
-            _payToken != address(0) && payableToken[_payToken],
-            "NotValidPaymentToken"
-        );
-        _;
     }
 
     //@notice: List NFT
@@ -180,10 +109,22 @@ contract AfricarareNFTMarketplace is
         uint256 _tokenId,
         address _payToken,
         uint256 _price
-    ) external isAfricarareNFT(_nftAddress) isPayableToken(_payToken) {
-        IERC721 nft = IERC721(_nftAddress);
-        require(nft.ownerOf(_tokenId) == msg.sender, "NotNftOwner");
-        nft.safeTransferFrom(msg.sender, address(this), _tokenId);
+    )
+        external
+        nonReentrant
+        onlyAfricarareNFT(
+            africarareNFTFactory.onlyAfricarareNFT(_nftAddress),
+            _nftAddress
+        )
+        onlyPayableToken(payableTokens[_payToken])
+        onlyNFTOwner(IERC721(_nftAddress).ownerOf(_tokenId), msg.sender)
+    {
+        emit ListedNFT(_nftAddress, _tokenId, _payToken, _price, msg.sender);
+        IERC721(_nftAddress).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _tokenId
+        );
 
         //TODO: Move to storage contract
         listNfts[_nftAddress][_tokenId] = ListNFT({
@@ -194,18 +135,14 @@ contract AfricarareNFTMarketplace is
             price: _price,
             sold: false
         });
-
-        emit ListedNFT(_nftAddress, _tokenId, _payToken, _price, msg.sender);
     }
 
     //@notice: Cancel listed NFT
     function cancelListedNFT(address _nftAddress, uint256 _tokenId)
         external
-        isListedNFT(_nftAddress, _tokenId)
+        onlyListedNFT(listNfts[_nftAddress][_tokenId])
+        onlyListedNFTOwner(listNfts[_nftAddress][_tokenId], msg.sender)
     {
-        //TODO: Move to storage contract
-        ListNFT memory listedNFT = listNfts[_nftAddress][_tokenId];
-        require(listedNFT.seller == msg.sender, "NotListedNftOwner");
         //TODO: Move to storage contract
         delete listNfts[_nftAddress][_tokenId];
         IERC721(_nftAddress).safeTransferFrom(
@@ -221,19 +158,21 @@ contract AfricarareNFTMarketplace is
         uint256 _tokenId,
         address _payToken,
         uint256 _price
-    ) external isListedNFT(_nftAddress, _tokenId) {
+    )
+        external
+        onlySufficientTransferAmount(listNfts[_nftAddress][_tokenId], _price)
+        onlyListedNFT(listNfts[_nftAddress][_tokenId])
+        onlyPayableToken(payableTokens[_payToken])
+        nonReentrant
+    {
         //TODO: Move to storage contract
-        ListNFT storage listedNft = listNfts[_nftAddress][_tokenId];
-        require(
-            _payToken != address(0) && _payToken == listedNft.payToken,
-            "NotValidPaymentToken"
-        );
-        require(!listedNft.sold, "ItemIsSold");
-        require(_price >= listedNft.price, "InsufficientBalance");
+        ListNFT memory listedNft = listNfts[_nftAddress][_tokenId];
 
         listedNft.sold = true;
 
+        // FIXME: check if this mutatble use of totalPrice is safe
         uint256 totalPrice = _price;
+        //TODO: Add eip royalties
         IAfricarareNFT nft = IAfricarareNFT(listedNft.nft);
         address royaltyRecipient = nft.getRoyaltyRecipient();
         uint256 royaltyFee = nft.getRoyaltyFee();
@@ -251,7 +190,7 @@ contract AfricarareNFTMarketplace is
         }
 
         // Calculate & Transfer platform fee
-        uint256 platformFeeTotal = calculatePlatformFee(_price);
+        uint256 platformFeeTotal = calculatePlatformFee(_price, platformFee);
         IERC20(listedNft.payToken).safeTransferFrom(
             msg.sender,
             feeRecipient,
@@ -282,15 +221,17 @@ contract AfricarareNFTMarketplace is
         );
     }
 
-    function offerNFT(
+    function placeOfferForNFT(
         address _nftAddress,
         uint256 _tokenId,
         address _payToken,
         uint256 _offerPrice
-    ) external isListedNFT(_nftAddress, _tokenId) {
-        require(_offerPrice > 0, "ListPriceLessThanZero");
-        console.log(_offerPrice);
-
+    )
+        external
+        onlyListedNFT(listNfts[_nftAddress][_tokenId])
+        validOfferPrice(_offerPrice)
+        nonReentrant
+    {
         //TODO: Move to storage contract
         ListNFT memory nft = listNfts[_nftAddress][_tokenId];
         IERC20(nft.payToken).safeTransferFrom(
@@ -319,16 +260,21 @@ contract AfricarareNFTMarketplace is
     }
 
     // @notice Offerer cancel offering
-    function cancelOfferNFT(address _nftAddress, uint256 _tokenId)
+    function cancelOfferForNFT(address _nftAddress, uint256 _tokenId)
         external
-        isOfferedNFT(_nftAddress, _tokenId, msg.sender)
+        onlyNFTOffer(offerNfts[_nftAddress][_tokenId][msg.sender])
+        onlyNFTOfferOwner(
+            offerNfts[_nftAddress][_tokenId][msg.sender],
+            msg.sender
+        )
+        nonAcceptedOffer(
+            offerNfts[_nftAddress][_tokenId][msg.sender],
+            msg.sender
+        )
+        nonReentrant
     {
         //TODO: Move to storage contract
         OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][msg.sender];
-        if (offer.offerer != msg.sender)
-            revert NotOfferer(offer.offerer, msg.sender);
-        // require(offer.offerer == msg.sender, "not offerer");
-        require(!offer.accepted, "OfferAlreadyAccepted");
         //TODO: Move to storage contract
         delete offerNfts[_nftAddress][_tokenId][msg.sender];
         IERC20(offer.payToken).safeTransfer(offer.offerer, offer.offerPrice);
@@ -342,32 +288,30 @@ contract AfricarareNFTMarketplace is
     }
 
     // @notice listed NFT owner accept offering
-    function acceptOfferNFT(
+    function acceptOfferForNFT(
         address _nftAddress,
         uint256 _tokenId,
         address _offerer
     )
         external
-        isOfferedNFT(_nftAddress, _tokenId, _offerer)
-        isListedNFT(_nftAddress, _tokenId)
+        onlyNFTOffer(offerNfts[_nftAddress][_tokenId][_offerer])
+        onlyListedNFT(listNfts[_nftAddress][_tokenId])
+        onlyListedNFTOwner(listNfts[_nftAddress][_tokenId], msg.sender)
+        nonAcceptedOffer(offerNfts[_nftAddress][_tokenId][_offerer], _offerer)
+        nonZeroAddress(_offerer)
+        nonReentrant
     {
-        require(
-            //TODO: Move to storage contract
-            listNfts[_nftAddress][_tokenId].seller == msg.sender,
-            "NotListedNftOwner"
-        );
         //TODO: Move to storage contract
         OfferNFT storage offer = offerNfts[_nftAddress][_tokenId][_offerer];
         //TODO: Move to storage contract
         ListNFT storage list = listNfts[offer.nft][offer.tokenId];
-        require(!list.sold, "ItemIsSold");
-        require(!offer.accepted, "OfferAlreadyAccepted");
 
         list.sold = true;
         offer.accepted = true;
 
         uint256 offerPrice = offer.offerPrice;
 
+        //TODO: replace with standard royalties
         IAfricarareNFT nft = IAfricarareNFT(offer.nft);
         address royaltyRecipient = nft.getRoyaltyRecipient();
         uint256 royaltyFee = nft.getRoyaltyFee();
@@ -381,7 +325,10 @@ contract AfricarareNFTMarketplace is
         }
 
         // Calculate & Transfer platform fee
-        uint256 platformFeeTotal = calculatePlatformFee(offerPrice);
+        uint256 platformFeeTotal = calculatePlatformFee(
+            offerPrice,
+            platformFee
+        );
         if (platformFeeTotal > 0) {
             payToken.safeTransfer(feeRecipient, platformFeeTotal);
         }
@@ -418,11 +365,14 @@ contract AfricarareNFTMarketplace is
         uint256 _minBid,
         uint256 _startTime,
         uint256 _endTime
-    ) external isPayableToken(_payToken) isNotAuction(_nftAddress, _tokenId) {
-        IERC721 nft = IERC721(_nftAddress);
-        require(nft.ownerOf(_tokenId) == msg.sender, "NotNftOwner");
-        require(_endTime > _startTime, "NotValidAuctionDuration");
-
+    )
+        external
+        onlyPayableToken(payableTokens[_payToken])
+        onlyNFTOwner(IERC721(_nftAddress).ownerOf(_tokenId), msg.sender)
+        onlyValidAuctionDuration(_startTime, _endTime)
+        nonAuctioned(auctionNfts[_nftAddress][_tokenId])
+        nonReentrant
+    {
         //TODO: Move to storage contract
         auctionNfts[_nftAddress][_tokenId] = AuctionNFT({
             nft: _nftAddress,
@@ -436,10 +386,8 @@ contract AfricarareNFTMarketplace is
             lastBidder: address(0),
             highestBid: _price,
             winner: address(0),
-            success: false
+            called: false
         });
-
-        nft.safeTransferFrom(msg.sender, address(this), _tokenId);
 
         emit CreatedAuction(
             _nftAddress,
@@ -451,24 +399,33 @@ contract AfricarareNFTMarketplace is
             _endTime,
             msg.sender
         );
+
+        IERC721(_nftAddress).safeTransferFrom(
+            msg.sender,
+            address(this),
+            _tokenId
+        );
     }
 
     // @notice Cancel auction
     function cancelAuction(address _nftAddress, uint256 _tokenId)
         external
-        isAuction(_nftAddress, _tokenId)
-    {
-        //TODO: Move to storage contract
-        AuctionNFT memory auction = auctionNfts[_nftAddress][_tokenId];
-        require(auction.creator == msg.sender, "NotAuctionCreator");
+        onlyAuctioned(auctionNfts[_nftAddress][_tokenId])
+        onlyAuctionCreator(auctionNfts[_nftAddress][_tokenId], msg.sender)
         // solhint-disable-next-line not-rely-on-time
-        require(block.timestamp < auction.startTime, "AuctionHasStarted");
-        require(auction.lastBidder == address(0), "AuctionHasBidders");
-
-        IERC721 nft = IERC721(_nftAddress);
-        //TODO: Move to storage contract
+        nonStartedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
+        nonBiddedAuction(auctionNfts[_nftAddress][_tokenId])
+        nonReentrant
+    {
+        // FIXME: determine if this is safe
         delete auctionNfts[_nftAddress][_tokenId];
-        nft.safeTransferFrom(address(this), msg.sender, _tokenId);
+
+        IERC721(_nftAddress).safeTransferFrom(
+            address(this),
+            msg.sender,
+            _tokenId
+        );
+
         emit CancelledAuction(
             _nftAddress,
             _tokenId,
@@ -483,32 +440,16 @@ contract AfricarareNFTMarketplace is
         address _nftAddress,
         uint256 _tokenId,
         uint256 _bidPrice
-    ) external isAuction(_nftAddress, _tokenId) {
-        require(
-            //TODO: Move to storage contract
-            // solhint-disable-next-line not-rely-on-time
-            block.timestamp >= auctionNfts[_nftAddress][_tokenId].startTime,
-            "AuctionHasNotStarted"
-        );
-        require(
-            //TODO: Move to storage contract
-            // solhint-disable-next-line not-rely-on-time
-            block.timestamp <= auctionNfts[_nftAddress][_tokenId].endTime,
-            "AuctionIsComplete"
-        );
-        console.log(
-            //TODO: Move to storage contract
-            auctionNfts[_nftAddress][_tokenId].highestBid +
-                auctionNfts[_nftAddress][_tokenId].minBid
-        );
-        require(
-            _bidPrice >=
-                //TODO: Move to storage contract
-                auctionNfts[_nftAddress][_tokenId].highestBid +
-                    auctionNfts[_nftAddress][_tokenId].minBid,
-            "BidTooLow"
-        );
-
+    )
+        external
+        onlyAuctioned(auctionNfts[_nftAddress][_tokenId])
+        nonReentrant
+        // solhint-disable-next-line not-rely-on-time
+        nonFinishedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
+        // solhint-disable-next-line not-rely-on-time
+        onlyStartedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
+        onlySufficientBidAmount(auctionNfts[_nftAddress][_tokenId], _bidPrice)
+    {
         //TODO: Move to storage contract
         AuctionNFT storage auction = auctionNfts[_nftAddress][_tokenId];
         IERC20 payToken = IERC20(auction.payToken);
@@ -535,60 +476,62 @@ contract AfricarareNFTMarketplace is
     }
 
     // @notice Result auction, callable by auction creator, highest bidder, or marketplace owner
-    function resultAuction(address _nftAddress, uint256 _tokenId) external {
-        require(
-            //TODO: Move to storage contract
-            !auctionNfts[_nftAddress][_tokenId].success,
-            "AuctionIsComplete"
-        );
-        require(
-            msg.sender == owner() ||
-                //TODO: Move to storage contract
-                msg.sender == auctionNfts[_nftAddress][_tokenId].creator ||
-                //TODO: Move to storage contract
-                msg.sender == auctionNfts[_nftAddress][_tokenId].lastBidder,
-            "NotAllowedToCallAuctionResult"
-        );
-        require(
-            //TODO: Move to storage contract
-            // solhint-disable-next-line not-rely-on-time
-            block.timestamp > auctionNfts[_nftAddress][_tokenId].endTime,
-            "AuctionIsNotComplete"
-        );
-
+    function resultAuction(address _nftAddress, uint256 _tokenId)
+        external
+        nonReentrant
+        nonCalledAuction(auctionNfts[_nftAddress][_tokenId])
+        // solhint-disable-next-line not-rely-on-time
+        onlyFinishedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
+        onlyAuthorisedAuctionCaller(
+            auctionNfts[_nftAddress][_tokenId],
+            owner(),
+            msg.sender
+        )
+    {
         //TODO: Move to storage contract
         AuctionNFT storage auction = auctionNfts[_nftAddress][_tokenId];
-        IERC20 payToken = IERC20(auction.payToken);
-        IERC721 nft = IERC721(auction.nft);
 
-        auction.success = true;
-        auction.winner = auction.creator;
+        auction.called = true;
+        auction.winner = auction.lastBidder;
 
         IAfricarareNFT africarareNft = IAfricarareNFT(_nftAddress);
         address royaltyRecipient = africarareNft.getRoyaltyRecipient();
-        uint256 royaltyFee = africarareNft.getRoyaltyFee();
 
         uint256 highestBid = auction.highestBid;
+        //FIXME: determine if this is safe
         uint256 totalPrice = highestBid;
 
-        if (royaltyFee > 0) {
-            uint256 royaltyTotal = calculateRoyaltyFee(royaltyFee, highestBid);
+        if (africarareNft.getRoyaltyFee() > 0) {
+            uint256 royaltyTotal = calculateRoyaltyFee(
+                africarareNft.getRoyaltyFee(),
+                highestBid
+            );
             // Transfer royalty fee to collection owner
-            payToken.safeTransfer(royaltyRecipient, royaltyTotal);
+            IERC20(auction.payToken).safeTransfer(
+                royaltyRecipient,
+                royaltyTotal
+            );
             totalPrice -= royaltyTotal;
         }
 
         // Calculate & Transfer platform fee
-        uint256 platformFeeTotal = calculatePlatformFee(highestBid);
-        payToken.safeTransfer(feeRecipient, platformFeeTotal);
+        uint256 platformFeeTotal = calculatePlatformFee(
+            highestBid,
+            platformFee
+        );
+        //Transfer to the platform
+        IERC20(auction.payToken).safeTransfer(feeRecipient, platformFeeTotal);
 
         // Transfer to auction creator
-        payToken.safeTransfer(auction.creator, totalPrice - platformFeeTotal);
+        IERC20(auction.payToken).safeTransfer(
+            auction.creator,
+            totalPrice - platformFeeTotal
+        );
 
         // Transfer NFT to the winner
-        nft.safeTransferFrom(
+        IERC721(auction.nft).safeTransferFrom(
             address(this),
-            auction.lastBidder,
+            auction.winner,
             auction.tokenId
         );
 
@@ -596,18 +539,18 @@ contract AfricarareNFTMarketplace is
             _nftAddress,
             _tokenId,
             auction.creator,
-            auction.lastBidder,
+            auction.winner,
             auction.highestBid,
             msg.sender
         );
     }
 
-    function calculatePlatformFee(uint256 _price)
+    function calculatePlatformFee(uint256 _price, uint256 _platformFee)
         public
-        view
+        pure
         returns (uint256)
     {
-        return (_price * platformFee) / 10000;
+        return (_price * _platformFee) / 10000;
     }
 
     function calculateRoyaltyFee(uint256 _royalty, uint256 _price)
@@ -629,35 +572,48 @@ contract AfricarareNFTMarketplace is
 
     //TODO: Move to storage contract
     function getPayableTokens() external view returns (address[] memory) {
-        return tokens;
+        return paymentTokens;
+    }
+
+    function addPayableToken(address _paymentToken)
+        external
+        nonPayableToken(payableTokens[_paymentToken], _paymentToken)
+        nonZeroAddress(_paymentToken)
+        onlyOwner
+    {
+        //TODO: Move to storage contract
+        payableTokens[_paymentToken] = true;
+        //TODO: Move to storage contract
+        paymentTokens.push(_paymentToken);
     }
 
     //TODO: Move to storage contract
-    function checkIsPayableToken(address _payableToken)
+    function checkIsPayableToken(address _paymentToken)
         external
         view
         returns (bool)
     {
-        return payableToken[_payableToken];
-    }
-
-    function addPayableToken(address _token) external onlyOwner {
-        require(_token != address(0), "AddressIsZero");
-        //TODO: Move to storage contract
-        require(!payableToken[_token], "PaymentTokenAlreadyAdded");
-        //TODO: Move to storage contract
-        payableToken[_token] = true;
-        //TODO: Move to storage contract
-        tokens.push(_token);
+        return payableTokens[_paymentToken];
     }
 
     function updatePlatformFee(uint256 _platformFee) external onlyOwner {
-        require(_platformFee <= 10, "PlatformFeeExceedLimit");
+        //@dev: expressed in percentage i.e 10% fee
+        if (_platformFee >= 10) {
+            revert PlatformFeeExceedLimit(_platformFee, 10);
+        }
+        emit UpdatedPlatformFee(_platformFee);
         platformFee = _platformFee;
     }
 
-    function changeFeeRecipient(address _feeRecipient) external onlyOwner {
-        require(_feeRecipient != address(0), "AddressIsZero");
+    function updateFeeRecipient(address _feeRecipient)
+        external
+        onlyOwner
+        nonZeroAddress(_feeRecipient)
+    {
+        if (_feeRecipient == address(0)) {
+            revert AddressIsZero(_feeRecipient);
+        }
+
         feeRecipient = _feeRecipient;
     }
 }
