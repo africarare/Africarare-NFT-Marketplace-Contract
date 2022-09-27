@@ -56,6 +56,7 @@
   "dependencies": {
     "@atixlabs/hardhat-time-n-mine": "^0.0.5",
     "@openzeppelin/contracts": "^4.7.0",
+    "@openzeppelin/contracts-upgradeable": "^4.8.0-rc.1",
     "hardhat-contract-sizer": "^2.6.1",
     "hardhat-deploy": "^0.11.11",
     "just": "^0.1.8",
