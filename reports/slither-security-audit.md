@@ -24,9 +24,9 @@ Confidence: Medium
  - [ ] ID-1
 Reentrancy in [AfricarareNFTMarketplace.offerNFT(address,uint256,address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L332-L369):
 	External calls:
-	- [IERC20(nft.payToken).safeTransferFrom(msg.sender,address(this),_offerPrice)](contracts/marketplace/AfricarareNFTMarketplace.sol#L346-L350)
+	- [IERC20(nft.payToken).safeTransferFrom(_msgSender(),address(this),_offerPrice)](contracts/marketplace/AfricarareNFTMarketplace.sol#L346-L350)
 	State variables written after the call(s):
-	- [offerNfts[_nftAddress][_tokenId][msg.sender] = OfferNFT(nft.nft,nft.tokenId,msg.sender,_payToken,_offerPrice,false)](contracts/marketplace/AfricarareNFTMarketplace.sol#L353-L360)
+	- [offerNfts[_nftAddress][_tokenId][_msgSender()] = OfferNFT(nft.nft,nft.tokenId,_msgSender(),_payToken,_offerPrice,false)](contracts/marketplace/AfricarareNFTMarketplace.sol#L353-L360)
 
 contracts/marketplace/AfricarareNFTMarketplace.sol#L332-L369
 
@@ -34,9 +34,9 @@ contracts/marketplace/AfricarareNFTMarketplace.sol#L332-L369
  - [ ] ID-2
 Reentrancy in [AfricarareNFTMarketplace.listNft(address,uint256,address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L204-L228):
 	External calls:
-	- [nft.safeTransferFrom(msg.sender,address(this),_tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L216)
+	- [nft.safeTransferFrom(_msgSender(),address(this),_tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L216)
 	State variables written after the call(s):
-	- [listNfts[_nftAddress][_tokenId] = ListNFT(_nftAddress,_tokenId,msg.sender,_payToken,_price,false)](contracts/marketplace/AfricarareNFTMarketplace.sol#L219-L226)
+	- [listNfts[_nftAddress][_tokenId] = ListNFT(_nftAddress,_tokenId,_msgSender(),_payToken,_price,false)](contracts/marketplace/AfricarareNFTMarketplace.sol#L219-L226)
 
 contracts/marketplace/AfricarareNFTMarketplace.sol#L204-L228
 
@@ -47,12 +47,12 @@ Confidence: Medium
  - [ ] ID-3
 Reentrancy in [AfricarareNFTMarketplace.buyNFT(address,uint256,address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L253-L330):
 	External calls:
-	- [IERC20(listedNft.payToken).safeTransferFrom(msg.sender,royaltyRecipient,royaltyTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L292-L296)
-	- [IERC20(listedNft.payToken).safeTransferFrom(msg.sender,feeRecipient,platformFeeTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L302-L306)
-	- [IERC20(listedNft.payToken).safeTransferFrom(msg.sender,listedNft.seller,totalPrice - platformFeeTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L309-L313)
-	- [IERC721(listedNft.nft).safeTransferFrom(address(this),msg.sender,listedNft.tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L316-L320)
+	- [IERC20(listedNft.payToken).safeTransferFrom(_msgSender(),royaltyRecipient,royaltyTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L292-L296)
+	- [IERC20(listedNft.payToken).safeTransferFrom(_msgSender(),feeRecipient,platformFeeTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L302-L306)
+	- [IERC20(listedNft.payToken).safeTransferFrom(_msgSender(),listedNft.seller,totalPrice - platformFeeTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L309-L313)
+	- [IERC721(listedNft.nft).safeTransferFrom(address(this),_msgSender(),listedNft.tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L316-L320)
 	Event emitted after the call(s):
-	- [BoughtNFT(listedNft.nft,listedNft.tokenId,listedNft.payToken,_price,listedNft.seller,msg.sender)](contracts/marketplace/AfricarareNFTMarketplace.sol#L322-L329)
+	- [BoughtNFT(listedNft.nft,listedNft.tokenId,listedNft.payToken,_price,listedNft.seller,_msgSender())](contracts/marketplace/AfricarareNFTMarketplace.sol#L322-L329)
 
 contracts/marketplace/AfricarareNFTMarketplace.sol#L253-L330
 
@@ -65,7 +65,7 @@ Reentrancy in [AfricarareNFTMarketplace.resultAuction(address,uint256)](contract
 	- [payToken.safeTransfer(auction.creator,totalPrice - platformFeeTotal)](contracts/marketplace/AfricarareNFTMarketplace.sol#L725)
 	- [nft.safeTransferFrom(address(this),auction.lastBidder,auction.tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L728-L732)
 	Event emitted after the call(s):
-	- [ResultedAuction(_nftAddress,_tokenId,auction.creator,auction.lastBidder,auction.highestBid,msg.sender)](contracts/marketplace/AfricarareNFTMarketplace.sol#L734-L741)
+	- [ResultedAuction(_nftAddress,_tokenId,auction.creator,auction.lastBidder,auction.highestBid,_msgSender())](contracts/marketplace/AfricarareNFTMarketplace.sol#L734-L741)
 
 contracts/marketplace/AfricarareNFTMarketplace.sol#L656-L742
 
@@ -75,7 +75,7 @@ Reentrancy in [AfricarareNFTMarketplace.cancelOfferNFT(address,uint256)](contrac
 	External calls:
 	- [IERC20(offer.payToken).safeTransfer(offer.offerer,offer.offerPrice)](contracts/marketplace/AfricarareNFTMarketplace.sol#L389)
 	Event emitted after the call(s):
-	- [CanceledOfferedNFT(offer.nft,offer.tokenId,offer.payToken,offer.offerPrice,msg.sender)](contracts/marketplace/AfricarareNFTMarketplace.sol#L390-L396)
+	- [CanceledOfferedNFT(offer.nft,offer.tokenId,offer.payToken,offer.offerPrice,_msgSender())](contracts/marketplace/AfricarareNFTMarketplace.sol#L390-L396)
 
 contracts/marketplace/AfricarareNFTMarketplace.sol#L372-L397
 
@@ -83,9 +83,9 @@ contracts/marketplace/AfricarareNFTMarketplace.sol#L372-L397
  - [ ] ID-6
 Reentrancy in [AfricarareNFTMarketplace.createAuction(address,uint256,address,uint256,uint256,uint256,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L485-L535):
 	External calls:
-	- [nft.safeTransferFrom(msg.sender,address(this),_tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L523)
+	- [nft.safeTransferFrom(_msgSender(),address(this),_tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L523)
 	Event emitted after the call(s):
-	- [CreatedAuction(_nftAddress,_tokenId,_payToken,_price,_minBid,_startTime,_endTime,msg.sender)](contracts/marketplace/AfricarareNFTMarketplace.sol#L525-L534)
+	- [CreatedAuction(_nftAddress,_tokenId,_payToken,_price,_minBid,_startTime,_endTime,_msgSender())](contracts/marketplace/AfricarareNFTMarketplace.sol#L525-L534)
 
 contracts/marketplace/AfricarareNFTMarketplace.sol#L485-L535
 
@@ -93,10 +93,10 @@ contracts/marketplace/AfricarareNFTMarketplace.sol#L485-L535
  - [ ] ID-7
 Reentrancy in [AfricarareNFTMarketplace.bidPlace(address,uint256,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L577-L653):
 	External calls:
-	- [payToken.safeTransferFrom(msg.sender,address(this),_bidPrice)](contracts/marketplace/AfricarareNFTMarketplace.sol#L636)
+	- [payToken.safeTransferFrom(_msgSender(),address(this),_bidPrice)](contracts/marketplace/AfricarareNFTMarketplace.sol#L636)
 	- [payToken.safeTransfer(lastBidder,lastBidPrice)](contracts/marketplace/AfricarareNFTMarketplace.sol#L643)
 	Event emitted after the call(s):
-	- [PlacedBid(_nftAddress,_tokenId,auction.payToken,_bidPrice,msg.sender)](contracts/marketplace/AfricarareNFTMarketplace.sol#L646-L652)
+	- [PlacedBid(_nftAddress,_tokenId,auction.payToken,_bidPrice,_msgSender())](contracts/marketplace/AfricarareNFTMarketplace.sol#L646-L652)
 
 contracts/marketplace/AfricarareNFTMarketplace.sol#L577-L653
 
@@ -104,9 +104,9 @@ contracts/marketplace/AfricarareNFTMarketplace.sol#L577-L653
  - [ ] ID-8
 Reentrancy in [AfricarareNFTMarketplace.cancelAuction(address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L538-L574):
 	External calls:
-	- [nft.safeTransferFrom(address(this),msg.sender,_tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L566)
+	- [nft.safeTransferFrom(address(this),_msgSender(),_tokenId)](contracts/marketplace/AfricarareNFTMarketplace.sol#L566)
 	Event emitted after the call(s):
-	- [CancelledAuction(_nftAddress,_tokenId,block.timestamp,msg.sender)](contracts/marketplace/AfricarareNFTMarketplace.sol#L567-L573)
+	- [CancelledAuction(_nftAddress,_tokenId,block.timestamp,_msgSender())](contracts/marketplace/AfricarareNFTMarketplace.sol#L567-L573)
 
 contracts/marketplace/AfricarareNFTMarketplace.sol#L538-L574
 
@@ -127,9 +127,9 @@ contracts/marketplace/AfricarareNFTMarketplace.sol#L400-L482
  - [ ] ID-10
 Reentrancy in [AfricarareNFTMarketplace.offerNFT(address,uint256,address,uint256)](contracts/marketplace/AfricarareNFTMarketplace.sol#L332-L369):
 	External calls:
-	- [IERC20(nft.payToken).safeTransferFrom(msg.sender,address(this),_offerPrice)](contracts/marketplace/AfricarareNFTMarketplace.sol#L346-L350)
+	- [IERC20(nft.payToken).safeTransferFrom(_msgSender(),address(this),_offerPrice)](contracts/marketplace/AfricarareNFTMarketplace.sol#L346-L350)
 	Event emitted after the call(s):
-	- [OfferedNFT(nft.nft,nft.tokenId,nft.payToken,_offerPrice,msg.sender)](contracts/marketplace/AfricarareNFTMarketplace.sol#L362-L368)
+	- [OfferedNFT(nft.nft,nft.tokenId,nft.payToken,_offerPrice,_msgSender())](contracts/marketplace/AfricarareNFTMarketplace.sol#L362-L368)
 
 contracts/marketplace/AfricarareNFTMarketplace.sol#L332-L369
 

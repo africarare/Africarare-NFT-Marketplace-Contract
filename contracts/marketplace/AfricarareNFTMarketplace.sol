@@ -117,11 +117,11 @@ contract AfricarareNFTMarketplace is
             _nftAddress
         )
         onlyPayableToken(payableTokens[_payToken])
-        onlyNFTOwner(IERC721(_nftAddress).ownerOf(_tokenId), msg.sender)
+        onlyNFTOwner(IERC721(_nftAddress).ownerOf(_tokenId), _msgSender())
     {
-        emit ListedNFT(_nftAddress, _tokenId, _payToken, _price, msg.sender);
+        emit ListedNFT(_nftAddress, _tokenId, _payToken, _price, _msgSender());
         IERC721(_nftAddress).safeTransferFrom(
-            msg.sender,
+            _msgSender(),
             address(this),
             _tokenId
         );
@@ -130,7 +130,7 @@ contract AfricarareNFTMarketplace is
         listNfts[_nftAddress][_tokenId] = ListNFT({
             nft: _nftAddress,
             tokenId: _tokenId,
-            seller: msg.sender,
+            seller: _msgSender(),
             payToken: _payToken,
             price: _price,
             sold: false
@@ -141,13 +141,13 @@ contract AfricarareNFTMarketplace is
     function cancelListedNFT(address _nftAddress, uint256 _tokenId)
         external
         onlyListedNFT(listNfts[_nftAddress][_tokenId])
-        onlyListedNFTOwner(listNfts[_nftAddress][_tokenId], msg.sender)
+        onlyListedNFTOwner(listNfts[_nftAddress][_tokenId], _msgSender())
     {
         //TODO: Move to storage contract
         delete listNfts[_nftAddress][_tokenId];
         IERC721(_nftAddress).safeTransferFrom(
             address(this),
-            msg.sender,
+            _msgSender(),
             _tokenId
         );
     }
@@ -182,7 +182,7 @@ contract AfricarareNFTMarketplace is
 
             // Transfer royalty fee to collection owner
             IERC20(listedNft.payToken).safeTransferFrom(
-                msg.sender,
+                _msgSender(),
                 royaltyRecipient,
                 royaltyTotal
             );
@@ -192,14 +192,14 @@ contract AfricarareNFTMarketplace is
         // Calculate & Transfer platform fee
         uint256 platformFeeTotal = calculatePlatformFee(_price, platformFee);
         IERC20(listedNft.payToken).safeTransferFrom(
-            msg.sender,
+            _msgSender(),
             feeRecipient,
             platformFeeTotal
         );
 
         // Transfer to nft owner
         IERC20(listedNft.payToken).safeTransferFrom(
-            msg.sender,
+            _msgSender(),
             listedNft.seller,
             totalPrice - platformFeeTotal
         );
@@ -207,7 +207,7 @@ contract AfricarareNFTMarketplace is
         // Transfer NFT to buyer
         IERC721(listedNft.nft).safeTransferFrom(
             address(this),
-            msg.sender,
+            _msgSender(),
             listedNft.tokenId
         );
 
@@ -217,7 +217,7 @@ contract AfricarareNFTMarketplace is
             listedNft.payToken,
             _price,
             listedNft.seller,
-            msg.sender
+            _msgSender()
         );
     }
 
@@ -235,16 +235,16 @@ contract AfricarareNFTMarketplace is
         //TODO: Move to storage contract
         ListNFT memory nft = listNfts[_nftAddress][_tokenId];
         IERC20(nft.payToken).safeTransferFrom(
-            msg.sender,
+            _msgSender(),
             address(this),
             _offerPrice
         );
 
         //TODO: Move to storage contract
-        offerNfts[_nftAddress][_tokenId][msg.sender] = OfferNFT({
+        offerNfts[_nftAddress][_tokenId][_msgSender()] = OfferNFT({
             nft: nft.nft,
             tokenId: nft.tokenId,
-            offerer: msg.sender,
+            offerer: _msgSender(),
             payToken: _payToken,
             offerPrice: _offerPrice,
             accepted: false
@@ -255,35 +255,35 @@ contract AfricarareNFTMarketplace is
             nft.tokenId,
             nft.payToken,
             _offerPrice,
-            msg.sender
+            _msgSender()
         );
     }
 
     // @notice Offerer cancel offering
     function cancelOfferForNFT(address _nftAddress, uint256 _tokenId)
         external
-        onlyNFTOffer(offerNfts[_nftAddress][_tokenId][msg.sender])
+        onlyNFTOffer(offerNfts[_nftAddress][_tokenId][_msgSender()])
         onlyNFTOfferOwner(
-            offerNfts[_nftAddress][_tokenId][msg.sender],
-            msg.sender
+            offerNfts[_nftAddress][_tokenId][_msgSender()],
+            _msgSender()
         )
         nonAcceptedOffer(
-            offerNfts[_nftAddress][_tokenId][msg.sender],
-            msg.sender
+            offerNfts[_nftAddress][_tokenId][_msgSender()],
+            _msgSender()
         )
         nonReentrant
     {
         //TODO: Move to storage contract
-        OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][msg.sender];
+        OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][_msgSender()];
         //TODO: Move to storage contract
-        delete offerNfts[_nftAddress][_tokenId][msg.sender];
+        delete offerNfts[_nftAddress][_tokenId][_msgSender()];
         IERC20(offer.payToken).safeTransfer(offer.offerer, offer.offerPrice);
         emit CanceledOfferedNFT(
             offer.nft,
             offer.tokenId,
             offer.payToken,
             offer.offerPrice,
-            msg.sender
+            _msgSender()
         );
     }
 
@@ -296,7 +296,7 @@ contract AfricarareNFTMarketplace is
         external
         onlyNFTOffer(offerNfts[_nftAddress][_tokenId][_offerer])
         onlyListedNFT(listNfts[_nftAddress][_tokenId])
-        onlyListedNFTOwner(listNfts[_nftAddress][_tokenId], msg.sender)
+        onlyListedNFTOwner(listNfts[_nftAddress][_tokenId], _msgSender())
         nonAcceptedOffer(offerNfts[_nftAddress][_tokenId][_offerer], _offerer)
         nonZeroAddress(_offerer)
         nonReentrant
@@ -368,7 +368,7 @@ contract AfricarareNFTMarketplace is
     )
         external
         onlyPayableToken(payableTokens[_payToken])
-        onlyNFTOwner(IERC721(_nftAddress).ownerOf(_tokenId), msg.sender)
+        onlyNFTOwner(IERC721(_nftAddress).ownerOf(_tokenId), _msgSender())
         onlyValidAuctionDuration(_startTime, _endTime)
         nonAuctioned(auctionNfts[_nftAddress][_tokenId])
         nonReentrant
@@ -377,7 +377,7 @@ contract AfricarareNFTMarketplace is
         auctionNfts[_nftAddress][_tokenId] = AuctionNFT({
             nft: _nftAddress,
             tokenId: _tokenId,
-            creator: msg.sender,
+            creator: _msgSender(),
             payToken: _payToken,
             initialPrice: _price,
             minBid: _minBid,
@@ -397,11 +397,11 @@ contract AfricarareNFTMarketplace is
             _minBid,
             _startTime,
             _endTime,
-            msg.sender
+            _msgSender()
         );
 
         IERC721(_nftAddress).safeTransferFrom(
-            msg.sender,
+            _msgSender(),
             address(this),
             _tokenId
         );
@@ -411,7 +411,7 @@ contract AfricarareNFTMarketplace is
     function cancelAuction(address _nftAddress, uint256 _tokenId)
         external
         onlyAuctioned(auctionNfts[_nftAddress][_tokenId])
-        onlyAuctionCreator(auctionNfts[_nftAddress][_tokenId], msg.sender)
+        onlyAuctionCreator(auctionNfts[_nftAddress][_tokenId], _msgSender())
         // solhint-disable-next-line not-rely-on-time
         nonStartedAuction(auctionNfts[_nftAddress][_tokenId], block.timestamp)
         nonBiddedAuction(auctionNfts[_nftAddress][_tokenId])
@@ -422,7 +422,7 @@ contract AfricarareNFTMarketplace is
 
         IERC721(_nftAddress).safeTransferFrom(
             address(this),
-            msg.sender,
+            _msgSender(),
             _tokenId
         );
 
@@ -431,7 +431,7 @@ contract AfricarareNFTMarketplace is
             _tokenId,
             // solhint-disable-next-line not-rely-on-time
             block.timestamp,
-            msg.sender
+            _msgSender()
         );
     }
 
@@ -454,9 +454,9 @@ contract AfricarareNFTMarketplace is
         AuctionNFT storage auction = auctionNfts[_nftAddress][_tokenId];
         IERC20 payToken = IERC20(auction.payToken);
         // Set new highest bid price
-        auction.lastBidder = msg.sender;
+        auction.lastBidder = _msgSender();
         auction.highestBid = _bidPrice;
-        payToken.safeTransferFrom(msg.sender, address(this), _bidPrice);
+        payToken.safeTransferFrom(_msgSender(), address(this), _bidPrice);
 
         if (auction.lastBidder != address(0)) {
             address lastBidder = auction.lastBidder;
@@ -471,7 +471,7 @@ contract AfricarareNFTMarketplace is
             _tokenId,
             auction.payToken,
             _bidPrice,
-            msg.sender
+            _msgSender()
         );
     }
 
@@ -485,7 +485,7 @@ contract AfricarareNFTMarketplace is
         onlyAuthorisedAuctionCaller(
             auctionNfts[_nftAddress][_tokenId],
             owner(),
-            msg.sender
+            _msgSender()
         )
     {
         //TODO: Move to storage contract
@@ -541,7 +541,7 @@ contract AfricarareNFTMarketplace is
             auction.creator,
             auction.winner,
             auction.highestBid,
-            msg.sender
+            _msgSender()
         );
     }
 

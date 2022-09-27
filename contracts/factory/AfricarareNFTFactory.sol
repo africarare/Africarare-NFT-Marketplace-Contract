@@ -3,11 +3,12 @@
 pragma solidity 0.8.7;
 
 import "../token/AfricarareNFT.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /* Africarare NFT Factory
     Create new Africarare NFT collection
 */
-contract AfricarareNFTFactory {
+contract AfricarareNFTFactory is Ownable{
     // owner address => nft list
     mapping(address => address[]) private nfts;
 
@@ -29,13 +30,13 @@ contract AfricarareNFTFactory {
         AfricarareNFT nft = new AfricarareNFT(
             _name,
             _symbol,
-            msg.sender,
+            _msgSender(),
             _royaltyFee,
             _royaltyRecipient
         );
-        nfts[msg.sender].push(address(nft));
+        nfts[_msgSender()].push(address(nft));
         africarareNFT[address(nft)] = true;
-        emit CreatedNFTCollection(msg.sender, address(nft), _name, _symbol);
+        emit CreatedNFTCollection(_msgSender(), address(nft), _name, _symbol);
     }
 
     function getOwnCollections(address sender)
