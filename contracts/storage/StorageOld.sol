@@ -2,10 +2,10 @@
 // Author: Africarare
 pragma solidity ^0.8.7;
 
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 //TODO: Implement
-contract TokenStorage is AccessControl {
+contract TokenStorage is AccessControlUpgradeable {
     bytes32 public constant STORAGE_ADMIN_ROLE =
         keccak256("STORAGE_ADMIN_ROLE");
 

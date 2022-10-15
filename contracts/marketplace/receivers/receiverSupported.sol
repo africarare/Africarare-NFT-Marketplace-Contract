@@ -9,10 +9,10 @@ import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.so
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
-import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 
 abstract contract receiverSupported is
-    AccessControlEnumerableUpgradeable,
+    AccessControlUpgradeable,
     IERC721ReceiverUpgradeable,
     IERC1155ReceiverUpgradeable
 {
@@ -20,7 +20,7 @@ abstract contract receiverSupported is
         public
         view
         virtual
-        override(AccessControlEnumerableUpgradeable, IERC165Upgradeable)
+        override(AccessControlUpgradeable, IERC165Upgradeable)
         returns (bool)
     {
         return

@@ -3,12 +3,12 @@
 pragma solidity 0.8.7;
 
 import "../token/AfricarareNFT.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
 /* Africarare NFT Factory
     Create new Africarare NFT collection
 */
-contract AfricarareNFTFactory is Ownable{
+contract AfricarareNFTFactory is OwnableUpgradeable{
     // owner address => nft list
     mapping(address => address[]) private nfts;
 

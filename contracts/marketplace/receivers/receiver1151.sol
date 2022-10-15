@@ -24,6 +24,4 @@ abstract contract Receiver1155 is IERC1155ReceiverUpgradeable {
     ) public virtual override returns (bytes4) {
         return this.onERC1155BatchReceived.selector;
     }
-
-
 }
