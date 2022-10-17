@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Author: Africarare
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.17;
 
 //solhint-disable-next-line no-empty-blocks
 contract OwnableDelegateProxy {

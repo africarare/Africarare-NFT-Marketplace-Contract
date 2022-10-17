@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 // Author: Africarare
-pragma solidity 0.8.7;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
