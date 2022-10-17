@@ -3,10 +3,12 @@
   "scripts": {
     "lint": "solhint -f table contracts/**/*.sol",
     "compile": "TS_NODE_TRANSPILE_ONLY=true npx hardhat compile",
+    "compile-watch": "nodemon --watch ./contracts/ -e sol --exec 'npx hardhat compile'",
     "deploy-localhost": "npx hardhat run scripts/deploy.ts --network localhost",
     "deploy-testnet": "npx hardhat run scripts/deploy.ts --network goerli",
     "verify-testnet": "npx hardhat run scripts/verify.ts --network goerli",
     "test": "TS_NODE_TRANSPILE_ONLY=true npx hardhat test && TS_NODE_TRANSPILE_ONLY=true npx hardhat coverage && npm run print-gas-usage",
+    "test-watch": "nodemon --watch ./test/ --exec 'npx hardhat test'",
     "node": "npx hardhat node",
     "format": "npx prettier --write 'contracts/**/*.sol'",
     "audit": "npx hardhat audit",
@@ -61,6 +63,7 @@
     "hardhat-contract-sizer": "^2.6.1",
     "hardhat-deploy": "^0.11.11",
     "just": "^0.1.8",
+    "nodemon": "^2.0.20",
     "winston": "^3.8.1"
   }
 }

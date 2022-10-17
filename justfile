@@ -42,6 +42,9 @@ install *PACKAGES:
    @npm install {{PACKAGES}}
 compile:
 	@npm run compile
+compile-watch:
+	@just _bold_red "Watching for changes to contracts and auto-compiling"
+	@npm run compile-watch
 deploy-localhost:
 	@npm run deploy-localhost
 deploy-testnet:
@@ -50,6 +53,9 @@ verify-testnet:
 	@npm run verify-testnet
 test:
 	@npm run test
+test-watch:
+    @just _bold_red "Watching for changes to tests and auto-testing"
+    @npm run test-watch
 lint:
 	@npm run lint
 start:
@@ -65,3 +71,6 @@ print-gas-usage:
 	@npm run print-gas-usage
 print-deployments:
 	@cat deployments/deploy.ts
+_bold_red message:
+    @#Hidden recipes have _ in front, i.e these can be helpers such as pretty printer below
+    @echo -e "{{BOLD}}{{RED}}{{message}}{{RESET}}"

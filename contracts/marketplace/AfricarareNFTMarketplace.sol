@@ -31,9 +31,12 @@ import "hardhat/console.sol";
 import "./interfaces/IAfricarareNFTFactory.sol";
 import "./interfaces/IAfricarareNFT.sol";
 import "./errors/errors.sol";
-import "./validation/validators.sol";
 import "./structures/structs.sol";
+import {MarketplaceValidators} from "./validation/validators.sol";
 import {MarketplaceEvents} from "./events/events.sol";
+import {IERC2981Support} from "./royalties/IERC2981Support.sol";
+
+// import {IERC2981Support} from "./events/events.sol";
 
 /*
     @dev: Africarare NFT Marketplace
