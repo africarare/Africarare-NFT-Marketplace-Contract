@@ -175,7 +175,7 @@ describe("Africarare Marketplace", () => {
         .approve(marketplace.address, toWei(listPrice));
       await marketplace
         .connect(buyer)
-        .buyNFT(nft.address, tokenId, payableToken.address, toWei(listPrice));
+        .buyNFT(nft.address, tokenId, payableToken.address);
       expect(await nft.ownerOf(tokenId)).eq(
         await buyer.getAddress(),
         "Buy NFT has failed."

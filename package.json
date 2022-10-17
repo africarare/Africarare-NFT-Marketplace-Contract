@@ -8,7 +8,7 @@
     "deploy-testnet": "npx hardhat run scripts/deploy.ts --network goerli",
     "verify-testnet": "npx hardhat run scripts/verify.ts --network goerli",
     "test": "TS_NODE_TRANSPILE_ONLY=true npx hardhat test && TS_NODE_TRANSPILE_ONLY=true npx hardhat coverage && npm run print-gas-usage",
-    "test-watch": "nodemon --watch ./test/ --exec 'npx hardhat test'",
+    "test-watch": "nodemon --watch ./contracts/ -e ts,sol --exec 'npx hardhat test'",
     "node": "npx hardhat node",
     "format": "npx prettier --write 'contracts/**/*.sol'",
     "audit": "npx hardhat audit",

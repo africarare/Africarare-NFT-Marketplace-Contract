@@ -40,7 +40,7 @@ import {IERC2981Support} from "./royalties/IERC2981Support.sol";
 
 /*
     @dev: Africarare NFT Marketplace
-    @dev: List NFT,
+    @dev: auction NFT,
     @dev: Buy NFT,
     @dev: Offer NFT,
     @dev: Accept offer,
@@ -50,7 +50,7 @@ import {IERC2981Support} from "./royalties/IERC2981Support.sol";
     @TODO: Support ERC1155,
     @TODO: Store assets in storage contract,
     @TODO: end to end unit test all custom errors and exceptions
-    @TODO: clean up offer, list logic
+    @TODO: clean up offer, auction logic
     @TODO: add timestamps to structs and events
     @TODO: use safe 1155, 721 interfaces like safe erc20?
     @TODO: remove payable tokens as well as add them
@@ -65,7 +65,8 @@ contract AfricarareNFTMarketplace is
     OwnableUpgradeable,
     ReentrancyGuardUpgradeable,
     MarketplaceEvents,
-    MarketplaceValidators
+    MarketplaceValidators,
+    IERC2981Support
 {
     using SafeERC20Upgradeable for IERC20Upgradeable;
     IAfricarareNFTFactory private immutable africarareNFTFactory;
@@ -79,7 +80,7 @@ contract AfricarareNFTMarketplace is
     address[] private paymentTokens;
 
     //TODO: Move to storage contract
-    // @dev: nft => tokenId => list struct
+    // @dev: nft => tokenId => auction struct
     mapping(address => mapping(uint256 => ListNFT)) private listNfts;
 
     // @dev: nft => tokenId => offerer address => offer struct
@@ -118,7 +119,7 @@ contract AfricarareNFTMarketplace is
         africarareNFTFactory = _africarareNFTFactory;
     }
 
-    //@notice: List NFT
+    //@notice: auction NFT
     function listNft(
         address _nftAddress,
         uint256 _tokenId,
@@ -127,10 +128,6 @@ contract AfricarareNFTMarketplace is
     )
         external
         nonReentrant
-        onlyAfricarareNFT(
-            africarareNFTFactory.onlyAfricarareNFT(_nftAddress),
-            _nftAddress
-        )
         onlyPayableToken(payableTokens[_payToken])
         onlyNFTOwner(
             IERC721Upgradeable(_nftAddress).ownerOf(_tokenId),
@@ -174,32 +171,35 @@ contract AfricarareNFTMarketplace is
     function buyNFT(
         address _nftAddress,
         uint256 _tokenId,
-        address _payToken,
-        uint256 _price
+        address _payToken
     )
         external
-        onlySufficientTransferAmount(listNfts[_nftAddress][_tokenId], _price)
+        onlySufficientTransferAmount(
+            listNfts[_nftAddress][_tokenId],
+            listNfts[_nftAddress][_tokenId].price
+        )
         onlyListedNFT(listNfts[_nftAddress][_tokenId])
         onlyPayableToken(payableTokens[_payToken])
         nonReentrant
     {
         //TODO: Move to storage contract
-        ListNFT memory listedNft = listNfts[_nftAddress][_tokenId];
+        ListNFT memory listing = listNfts[_nftAddress][_tokenId];
 
-        listedNft.sold = true;
+        listing.sold = true;
 
         // FIXME: check if this mutatble use of totalPrice is safe
-        uint256 totalPrice = _price;
-        //TODO: Add eip royalties
-        IAfricarareNFT nft = IAfricarareNFT(listedNft.nft);
-        address royaltyRecipient = nft.getRoyaltyRecipient();
-        uint256 royaltyFee = nft.getRoyaltyFee();
+        uint256 totalPrice = listing.price;
+        (address royaltyRecipient, uint256 royaltyFee) = getIERC2981Royalty(
+            listing.nft,
+            listing.tokenId,
+            listing.price
+        );
 
         if (royaltyFee > 0) {
-            uint256 royaltyTotal = calculateFee(royaltyFee, _price);
+            uint256 royaltyTotal = calculateFee(royaltyFee, listing.price);
 
             // Transfer royalty fee to collection owner
-            IERC20Upgradeable(listedNft.payToken).safeTransferFrom(
+            IERC20Upgradeable(listing.payToken).safeTransferFrom(
                 _msgSender(),
                 royaltyRecipient,
                 royaltyTotal
@@ -208,33 +208,33 @@ contract AfricarareNFTMarketplace is
         }
 
         // Calculate & Transfer platform fee
-        uint256 platformFeeTotal = calculateFee(platformFee, _price);
-        IERC20Upgradeable(listedNft.payToken).safeTransferFrom(
+        uint256 platformFeeTotal = calculateFee(platformFee, listing.price);
+        IERC20Upgradeable(listing.payToken).safeTransferFrom(
             _msgSender(),
             feeRecipient,
             platformFeeTotal
         );
 
-        // Transfer to nft owner
-        IERC20Upgradeable(listedNft.payToken).safeTransferFrom(
+        // Transfer to nft ownerlisting.
+        IERC20Upgradeable(listing.payToken).safeTransferFrom(
             _msgSender(),
-            listedNft.seller,
+            listing.seller,
             totalPrice - platformFeeTotal
         );
 
         // Transfer NFT to buyer
-        IERC721Upgradeable(listedNft.nft).safeTransferFrom(
+        IERC721Upgradeable(listing.nft).safeTransferFrom(
             address(this),
             _msgSender(),
-            listedNft.tokenId
+            listing.tokenId
         );
 
         emit BoughtNFT(
-            listedNft.nft,
-            listedNft.tokenId,
-            listedNft.payToken,
-            _price,
-            listedNft.seller,
+            listing.nft,
+            listing.tokenId,
+            listing.payToken,
+            listing.price,
+            listing.seller,
             _msgSender()
         );
     }
@@ -325,17 +325,18 @@ contract AfricarareNFTMarketplace is
         //TODO: Move to storage contract
         OfferNFT storage offer = offerNfts[_nftAddress][_tokenId][_offerer];
         //TODO: Move to storage contract
-        ListNFT storage list = listNfts[offer.nft][offer.tokenId];
+        ListNFT storage auction = listNfts[offer.nft][offer.tokenId];
 
-        list.sold = true;
+        auction.sold = true;
         offer.accepted = true;
 
         uint256 offerPrice = offer.offerPrice;
 
-        //TODO: replace with standard royalties
-        IAfricarareNFT nft = IAfricarareNFT(offer.nft);
-        address royaltyRecipient = nft.getRoyaltyRecipient();
-        uint256 royaltyFee = nft.getRoyaltyFee();
+        (address royaltyRecipient, uint256 royaltyFee) = getIERC2981Royalty(
+            auction.nft,
+            auction.tokenId,
+            auction.price
+        );
 
         IERC20Upgradeable payToken = IERC20Upgradeable(offer.payToken);
 
@@ -353,15 +354,15 @@ contract AfricarareNFTMarketplace is
 
         // Transfer to seller
         payToken.safeTransfer(
-            list.seller,
+            auction.seller,
             offerPrice - platformFeeTotal - royaltyTotal
         );
 
         // Transfer NFT to offerer
-        IERC721Upgradeable(list.nft).safeTransferFrom(
+        IERC721Upgradeable(auction.nft).safeTransferFrom(
             address(this),
             offer.offerer,
-            list.tokenId
+            auction.tokenId
         );
 
         emit AcceptedNFT(
@@ -370,7 +371,7 @@ contract AfricarareNFTMarketplace is
             offer.payToken,
             offer.offerPrice,
             offer.offerer,
-            list.seller
+            auction.seller
         );
     }
 
@@ -515,18 +516,18 @@ contract AfricarareNFTMarketplace is
         auction.called = true;
         auction.winner = auction.lastBidder;
 
-        IAfricarareNFT africarareNft = IAfricarareNFT(_nftAddress);
-        address royaltyRecipient = africarareNft.getRoyaltyRecipient();
+        (address royaltyRecipient, uint256 royaltyFee) = getIERC2981Royalty(
+            auction.nft,
+            auction.tokenId,
+            auction.highestBid
+        );
 
         uint256 highestBid = auction.highestBid;
         //FIXME: determine if this is safe
         uint256 totalPrice = highestBid;
 
-        if (africarareNft.getRoyaltyFee() > 0) {
-            uint256 royaltyTotal = calculateFee(
-                africarareNft.getRoyaltyFee(),
-                highestBid
-            );
+        if (royaltyFee > 0) {
+            uint256 royaltyTotal = calculateFee(royaltyFee, highestBid);
             // Transfer royalty fee to collection owner
             IERC20Upgradeable(auction.payToken).safeTransfer(
                 royaltyRecipient,
