@@ -2,7 +2,8 @@
 // Author: Africarare
 pragma solidity 0.8.17;
 
-import "@openzeppelin/contracts/interfaces/IERC2981.sol";
+import {IERC2981Upgradeable} from "@openzeppelin/contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
+import {IERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/introspection/IERC165Upgradeable.sol";
 
 abstract contract IERC2981Support {
     // bytes4 private constant INTERFACE_ID_ERC2981 = type(IERC2981).interfaceId;
@@ -13,8 +14,12 @@ abstract contract IERC2981Support {
         uint256 tokenId,
         uint256 price
     ) public view returns (address receiver, uint256 amount) {
-        if (IERC165(nftAddress).supportsInterface(INTERFACE_ID_ERC2981)) {
-            (receiver, amount) = IERC2981(nftAddress).royaltyInfo(
+        if (
+            IERC165Upgradeable(nftAddress).supportsInterface(
+                INTERFACE_ID_ERC2981
+            )
+        ) {
+            (receiver, amount) = IERC2981Upgradeable(nftAddress).royaltyInfo(
                 tokenId,
                 price
             );
