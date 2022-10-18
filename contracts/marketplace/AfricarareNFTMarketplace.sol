@@ -17,45 +17,53 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.17;
 
+//**********TRANSFER WRAPPERS******
 import "@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/metatx/ERC2771ContextUpgradeable.sol";
 // import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+//**********TOKEN STORAGE**********
+import "@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155HolderUpgradeable.sol";
+//**********AUTH ACCESS************
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+//***********SECURITY**************
+import "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
+//************META_TX**************
+import "@openzeppelin/contracts-upgradeable/metatx/ERC2771ContextUpgradeable.sol";
+//************DEBUG****************
 import "hardhat/console.sol";
 
+//**********FACTORY****************
 import "./interfaces/IAfricarareNFTFactory.sol";
 import "./interfaces/IAfricarareNFT.sol";
+//**********MARKETPLACE************
 import "./errors/errors.sol";
 import "./structures/structs.sol";
 import {MarketplaceValidators} from "./validation/validators.sol";
 import {MarketplaceEvents} from "./events/events.sol";
+//************ROYALTIES************
 import {IERC2981Support} from "./royalties/IERC2981Support.sol";
-
-// import {IERC2981Support} from "./events/events.sol";
 
 /*
     @dev: Africarare NFT Marketplace
-    @dev: auction NFT,
-    @dev: Buy NFT,
-    @dev: Offer NFT,
-    @dev: Accept offer,
-    @dev: Create auction,
-    @dev: Bid place,
-    @dev: Support Royalty,
-    @TODO: Support ERC1155,
-    @TODO: Store assets in storage contract,
-    @TODO: end to end unit test all custom errors and exceptions
-    @TODO: clean up offer, auction logic
+    @dev: Auction NFT
+    @dev: Buy NFT
+    @dev: Offer NFT
+    @dev: Accept offer
+    @dev: Create auction
+    @dev: Bid place result auction,
+    @dev: Support IERC2981 royalty
+    @TODO: Support ERC1155
+    @TODO: Store assets in storage contract
+    @TODO: Mock contracts
+    @TODO: End to end unit test all custom errors and exceptions
+    @TODO: clean up offer auction logic
     @TODO: add timestamps to structs and events
-    @TODO: use safe 1155, 721 interfaces like safe erc20?
+    @TODO: use safe 1155 721 interfaces like safe erc20?
     @TODO: remove payable tokens as well as add them
     @TODO: test fee logic math is correctly deducting right amounts
-    @TODO: remove uint256 for uint, let compiler optimise, or at least try
+    @TODO: remove uint256 for uint let compiler optimise, or at least try
 
 */
 
