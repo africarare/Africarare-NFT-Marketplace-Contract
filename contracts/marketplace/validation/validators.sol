@@ -3,13 +3,13 @@
 pragma solidity 0.8.17;
 
 import {MarketplaceStructs} from "../structures/MarketplaceStructs.sol";
-import "../errors/errors.sol";
+import {MarketplaceErrors} from "../errors/errors.sol";
 import "../interfaces/IAfricarareNFTFactory.sol";
 
 abstract contract MarketplaceValidators {
     function beforeNonZeroAddress(address _address) internal pure {
         if (_address == address(0)) {
-            revert AddressIsZero(_address);
+            revert MarketplaceErrors.AddressIsZero(_address);
         }
     }
 
@@ -24,7 +24,7 @@ abstract contract MarketplaceValidators {
     ) internal pure {
         //TODO: Move to storage contract
         if (_amountSent < _listing.price) {
-            revert InsufficientBalanceForItem(_listing, _amountSent);
+            revert MarketplaceErrors.InsufficientBalanceForItem(_listing, _amountSent);
         }
     }
 
@@ -42,7 +42,7 @@ abstract contract MarketplaceValidators {
     ) internal pure {
         //TODO: Move to storage contract
         if (_listing.seller != _sender) {
-            revert NotListedNftOwner(_listing, _sender);
+            revert MarketplaceErrors.NotListedNftOwner(_listing, _sender);
         }
     }
 
@@ -59,7 +59,7 @@ abstract contract MarketplaceValidators {
         pure
     {
         if (_nftOwner != _sender) {
-            revert NotNftOwner(_nftOwner, _sender);
+            revert MarketplaceErrors.NotNftOwner(_nftOwner, _sender);
         }
     }
 
@@ -73,7 +73,7 @@ abstract contract MarketplaceValidators {
         pure
     {
         if (!_isAfricarareNFT) {
-            revert NotAfricarareNFT(_nftAddress);
+            revert MarketplaceErrors.NotAfricarareNFT(_nftAddress);
         }
     }
 
@@ -90,11 +90,11 @@ abstract contract MarketplaceValidators {
         //TODO: Move to storage contract
         //FIXME: move this zero check somewhere better or remove it for explicit zero check modifier?
         if (_listing.seller == address(0)) {
-            revert AddressIsZero(_listing.seller);
+            revert MarketplaceErrors.AddressIsZero(_listing.seller);
         }
         //TODO: Move to storage contract
         if (_listing.sold) {
-            revert ItemIsSold(_listing);
+            revert MarketplaceErrors.ItemIsSold(_listing);
         }
     }
 
@@ -109,7 +109,7 @@ abstract contract MarketplaceValidators {
     {
         //TODO: Move to storage contract
         if (_listing.seller != address(0) && _listing.sold) {
-            revert ItemIsAlreadyListed(_listing);
+            revert MarketplaceErrors.ItemIsAlreadyListed(_listing);
         }
     }
 
@@ -123,7 +123,7 @@ abstract contract MarketplaceValidators {
         uint256 _endTime
     ) internal pure {
         if (_endTime <= _startTime) {
-            revert NotValidAuctionDuration(_startTime, _endTime);
+            revert MarketplaceErrors.NotValidAuctionDuration(_startTime, _endTime);
         }
     }
 
@@ -137,7 +137,7 @@ abstract contract MarketplaceValidators {
         uint256 _timestamp
     ) internal pure {
         if (_timestamp < _auction.startTime) {
-            revert AuctionIsNotStarted(
+            revert MarketplaceErrors.AuctionIsNotStarted(
                 // solhint-disable-next-line not-rely-on-time
                 _auction,
                 _timestamp
@@ -159,7 +159,7 @@ abstract contract MarketplaceValidators {
     ) internal pure {
         if (_timestamp >= _auction.startTime) {
             // solhint-disable-next-line not-rely-on-time
-            revert AuctionIsStarted(_auction, _timestamp);
+            revert MarketplaceErrors.AuctionIsStarted(_auction, _timestamp);
         }
     }
 
@@ -178,7 +178,7 @@ abstract contract MarketplaceValidators {
         //TODO: Move to storage contract
         // solhint-disable-next-line not-rely-on-time
         if (_timestamp <= _auction.endTime) {
-            revert AuctionIsNotFinished(_auction, _timestamp);
+            revert MarketplaceErrors.AuctionIsNotFinished(_auction, _timestamp);
         }
     }
 
@@ -195,7 +195,7 @@ abstract contract MarketplaceValidators {
         uint256 _bidAmount
     ) internal pure {
         if (_bidAmount <= _auction.highestBid + _auction.minBid) {
-            revert BidTooLow(_bidAmount, _auction.minBid);
+            revert MarketplaceErrors.BidTooLow(_bidAmount, _auction.minBid);
         }
     }
 
@@ -214,7 +214,7 @@ abstract contract MarketplaceValidators {
         //TODO: Move to storage contract
         // solhint-disable-next-line not-rely-on-time
         if (_timestamp >= _auction.endTime) {
-            revert AuctionIsFinished(_auction, _timestamp);
+            revert MarketplaceErrors.AuctionIsFinished(_auction, _timestamp);
         }
     }
 
@@ -231,7 +231,7 @@ abstract contract MarketplaceValidators {
         pure
     {
         if (_auction.called) {
-            revert AuctionIsCalled(_auction);
+            revert MarketplaceErrors.AuctionIsCalled(_auction);
         }
     }
 
@@ -246,10 +246,10 @@ abstract contract MarketplaceValidators {
     {
         //TODO: Move to storage contract
         if (_auction.nft == address(0)) {
-            revert AddressIsZero(_auction.nft);
+            revert MarketplaceErrors.AddressIsZero(_auction.nft);
         }
         if (_auction.called) {
-            revert AuctionIsCalled(_auction);
+            revert MarketplaceErrors.AuctionIsCalled(_auction);
         }
     }
 
@@ -263,7 +263,7 @@ abstract contract MarketplaceValidators {
         pure
     {
         if (_auction.nft != address(0) && !_auction.called) {
-            revert ItemIsAlreadyAuctioned(_auction);
+            revert MarketplaceErrors.ItemIsAlreadyAuctioned(_auction);
         }
     }
 
@@ -277,7 +277,7 @@ abstract contract MarketplaceValidators {
         address _sender
     ) internal pure {
         if (_auction.creator != _sender) {
-            revert NotAuctionCreator(_auction, _sender);
+            revert MarketplaceErrors.NotAuctionCreator(_auction, _sender);
         }
     }
 
@@ -294,7 +294,7 @@ abstract contract MarketplaceValidators {
         pure
     {
         if (_auction.lastBidder != address(0)) {
-            revert AuctionHasBidders(_auction);
+            revert MarketplaceErrors.AuctionHasBidders(_auction);
         }
     }
 
@@ -313,7 +313,7 @@ abstract contract MarketplaceValidators {
             _sender != _auction.creator &&
             _sender != _auction.lastBidder
         ) {
-            revert notAuthorisedToCallAuction(
+            revert MarketplaceErrors.notAuthorisedToCallAuction(
                 _sender,
                 _marketplaceOwner,
                 _auction.creator,
@@ -333,7 +333,7 @@ abstract contract MarketplaceValidators {
 
     function _validOfferPrice(uint256 _offerPrice) internal pure {
         if (_offerPrice <= 0) {
-            revert OfferPriceTooLow(_offerPrice);
+            revert MarketplaceErrors.OfferPriceTooLow(_offerPrice);
         }
     }
 
@@ -348,7 +348,7 @@ abstract contract MarketplaceValidators {
     {
         //TODO: Move to storage contract
         if (_offer.offerPrice <= 0 || _offer.offerer == address(0)) {
-            revert ItemIsNotOffered(_offer);
+            revert MarketplaceErrors.ItemIsNotOffered(_offer);
         }
     }
 
@@ -362,7 +362,7 @@ abstract contract MarketplaceValidators {
         address _sender
     ) internal pure {
         if (_offer.offerer != _sender)
-            revert NotOfferer(_offer.offerer, _sender);
+            revert MarketplaceErrors.NotOfferer(_offer.offerer, _sender);
     }
 
     modifier onlyNFTOfferOwner(
@@ -378,7 +378,7 @@ abstract contract MarketplaceValidators {
         address _sender
     ) internal pure {
         if (_offer.accepted) {
-            revert OfferAlreadyAccepted(_offer.offerer, _sender);
+            revert MarketplaceErrors.OfferAlreadyAccepted(_offer.offerer, _sender);
         }
     }
 
@@ -395,10 +395,10 @@ abstract contract MarketplaceValidators {
         //     TODO: Move to storage contract
         //FIXME: determine if zero check is needed
         // if (_payToken == address(0)) {
-        //     revert AddressIsZero(_payToken);
+        //     revert MarketplaceErrors.AddressIsZero(_payToken);
         // }
         if (!_exists) {
-            revert NotValidPaymentToken();
+            revert MarketplaceErrors.NotValidPaymentToken();
         }
     }
 
@@ -412,7 +412,7 @@ abstract contract MarketplaceValidators {
         pure
     {
         if (_exists) {
-            revert PaymentTokenAlreadyExists(_payToken);
+            revert MarketplaceErrors.PaymentTokenAlreadyExists(_payToken);
         }
     }
 

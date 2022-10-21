@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "../registry/Proxy.sol";
-import "../marketplace/errors/errors.sol";
+import {MarketplaceErrors} from "../marketplace/errors/errors.sol";
 import {NFTEvents} from "../marketplace/events/events.sol";
 
 /* Africarare NFT-ERC721 */
@@ -48,11 +48,12 @@ contract AfricarareNFT is
     }
 
     function _notZeroAddress(address _address) internal pure {
-        if (_address == address(0)) revert ZeroAddress();
+        if (_address == address(0)) revert MarketplaceErrors.ZeroAddress();
     }
 
     function _notExceedMaxRoyalty(uint256 _royaltyFee) internal pure {
-        if (_royaltyFee > 1000) revert RoyaltyMaxExceeded(_royaltyFee, 1000);
+        if (_royaltyFee > 1000)
+            revert MarketplaceErrors.RoyaltyMaxExceeded(_royaltyFee, 1000);
     }
 
     modifier notExceedMaxRoyalty(uint256 _royaltyFee) {
@@ -61,7 +62,7 @@ contract AfricarareNFT is
     }
 
     function _notLocked(bool _lock) internal pure {
-        if (_lock) revert isLockedContract();
+        if (_lock) revert MarketplaceErrors.isLockedContract();
     }
 
     modifier notLocked(bool _lock) {

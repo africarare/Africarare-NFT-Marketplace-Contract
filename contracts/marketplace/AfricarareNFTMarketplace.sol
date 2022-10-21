@@ -38,7 +38,7 @@ import "hardhat/console.sol";
 import "./interfaces/IAfricarareNFTFactory.sol";
 import "./interfaces/IAfricarareNFT.sol";
 //**********MARKETPLACE************
-import "./errors/errors.sol";
+import {MarketplaceErrors} from "./errors/errors.sol";
 import {MarketplaceStructs} from "./structures/MarketplaceStructs.sol";
 import {MarketplaceValidators} from "./validation/validators.sol";
 import {MarketplaceEvents} from "./events/events.sol";
@@ -89,7 +89,8 @@ contract AfricarareNFTMarketplace is
 
     //TODO: Move to storage contract
     // @dev: nft => tokenId => auction struct
-    mapping(address => mapping(uint256 => MarketplaceStructs.ListNFT)) private listNfts;
+    mapping(address => mapping(uint256 => MarketplaceStructs.ListNFT))
+        private listNfts;
 
     // @dev: nft => tokenId => offerer address => offer struct
     mapping(address => mapping(uint256 => mapping(address => MarketplaceStructs.OfferNFT)))
@@ -118,7 +119,7 @@ contract AfricarareNFTMarketplace is
     ) initializer {
         initialize();
         if (_platformFee > 1000)
-            revert PlatformFeeExceedLimit(_platformFee, 1000);
+            revert MarketplaceErrors.PlatformFeeExceedLimit(_platformFee, 1000);
 
         platformFee = _platformFee;
 
@@ -192,7 +193,9 @@ contract AfricarareNFTMarketplace is
         nonReentrant
     {
         //TODO: Move to storage contract
-        MarketplaceStructs.ListNFT memory listing = listNfts[_nftAddress][_tokenId];
+        MarketplaceStructs.ListNFT memory listing = listNfts[_nftAddress][
+            _tokenId
+        ];
 
         listing.sold = true;
 
@@ -268,14 +271,15 @@ contract AfricarareNFTMarketplace is
         );
 
         //TODO: Move to storage contract
-        offerNfts[_nftAddress][_tokenId][_msgSender()] = MarketplaceStructs.OfferNFT({
-            nft: nft.nft,
-            tokenId: nft.tokenId,
-            offerer: _msgSender(),
-            payToken: _payToken,
-            offerPrice: _offerPrice,
-            accepted: false
-        });
+        offerNfts[_nftAddress][_tokenId][_msgSender()] = MarketplaceStructs
+            .OfferNFT({
+                nft: nft.nft,
+                tokenId: nft.tokenId,
+                offerer: _msgSender(),
+                payToken: _payToken,
+                offerPrice: _offerPrice,
+                accepted: false
+            });
 
         emit OfferedNFT(
             nft.nft,
@@ -301,9 +305,9 @@ contract AfricarareNFTMarketplace is
         nonReentrant
     {
         //TODO: Move to storage contract
-        MarketplaceStructs.OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][
-            _msgSender()
-        ];
+        MarketplaceStructs.OfferNFT memory offer = offerNfts[_nftAddress][
+            _tokenId
+        ][_msgSender()];
         //TODO: Move to storage contract
         delete offerNfts[_nftAddress][_tokenId][_msgSender()];
         IERC20Upgradeable(offer.payToken).safeTransfer(
@@ -334,11 +338,13 @@ contract AfricarareNFTMarketplace is
         nonReentrant
     {
         //TODO: Move to storage contract
-        MarketplaceStructs.OfferNFT storage offer = offerNfts[_nftAddress][_tokenId][
-            _offerer
-        ];
+        MarketplaceStructs.OfferNFT storage offer = offerNfts[_nftAddress][
+            _tokenId
+        ][_offerer];
         //TODO: Move to storage contract
-        MarketplaceStructs.ListNFT storage auction = listNfts[offer.nft][offer.tokenId];
+        MarketplaceStructs.ListNFT storage auction = listNfts[offer.nft][
+            offer.tokenId
+        ];
 
         auction.sold = true;
         offer.accepted = true;
@@ -486,9 +492,9 @@ contract AfricarareNFTMarketplace is
         onlySufficientBidAmount(auctionNfts[_nftAddress][_tokenId], _bidPrice)
     {
         //TODO: Move to storage contract
-        MarketplaceStructs.AuctionNFT storage auction = auctionNfts[_nftAddress][
-            _tokenId
-        ];
+        MarketplaceStructs.AuctionNFT storage auction = auctionNfts[
+            _nftAddress
+        ][_tokenId];
         IERC20Upgradeable payToken = IERC20Upgradeable(auction.payToken);
         // Set new highest bid price
         auction.lastBidder = _msgSender();
@@ -526,9 +532,9 @@ contract AfricarareNFTMarketplace is
         )
     {
         //TODO: Move to storage contract
-        MarketplaceStructs.AuctionNFT storage auction = auctionNfts[_nftAddress][
-            _tokenId
-        ];
+        MarketplaceStructs.AuctionNFT storage auction = auctionNfts[
+            _nftAddress
+        ][_tokenId];
 
         auction.called = true;
         auction.winner = auction.lastBidder;
@@ -630,7 +636,7 @@ contract AfricarareNFTMarketplace is
     function updatePlatformFee(uint256 _platformFee) external onlyOwner {
         //@dev: expressed in percentage i.e 10% fee
         if (_platformFee >= 10) {
-            revert PlatformFeeExceedLimit(_platformFee, 10);
+            revert MarketplaceErrors.PlatformFeeExceedLimit(_platformFee, 10);
         }
         emit UpdatedPlatformFee(_platformFee);
         platformFee = _platformFee;
@@ -642,7 +648,7 @@ contract AfricarareNFTMarketplace is
         nonZeroAddress(_feeRecipient)
     {
         if (_feeRecipient == address(0)) {
-            revert AddressIsZero(_feeRecipient);
+            revert MarketplaceErrors.AddressIsZero(_feeRecipient);
         }
 
         feeRecipient = _feeRecipient;
