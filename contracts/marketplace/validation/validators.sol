@@ -2,7 +2,7 @@
 // Author: Africarare
 pragma solidity 0.8.17;
 
-import "../structures/structs.sol";
+import {MarketplaceStructs} from "../structures/MarketplaceStructs.sol";
 import "../errors/errors.sol";
 import "../interfaces/IAfricarareNFTFactory.sol";
 
@@ -19,7 +19,7 @@ abstract contract MarketplaceValidators {
     }
 
     function beforeOnlySufficientTransferAmount(
-        ListNFT memory _listing,
+        MarketplaceStructs.ListNFT memory _listing,
         uint256 _amountSent
     ) internal pure {
         //TODO: Move to storage contract
@@ -29,24 +29,27 @@ abstract contract MarketplaceValidators {
     }
 
     modifier onlySufficientTransferAmount(
-        ListNFT memory _listing,
+        MarketplaceStructs.ListNFT memory _listing,
         uint256 _amountSent
     ) {
         beforeOnlySufficientTransferAmount(_listing, _amountSent);
         _;
     }
 
-    function beforeOnlyListedNFTOwner(ListNFT memory _listing, address _sender)
-        internal
-        pure
-    {
+    function beforeOnlyListedNFTOwner(
+        MarketplaceStructs.ListNFT memory _listing,
+        address _sender
+    ) internal pure {
         //TODO: Move to storage contract
         if (_listing.seller != _sender) {
             revert NotListedNftOwner(_listing, _sender);
         }
     }
 
-    modifier onlyListedNFTOwner(ListNFT memory _listing, address _sender) {
+    modifier onlyListedNFTOwner(
+        MarketplaceStructs.ListNFT memory _listing,
+        address _sender
+    ) {
         beforeOnlyListedNFTOwner(_listing, _sender);
         _;
     }
@@ -80,7 +83,10 @@ abstract contract MarketplaceValidators {
     }
 
     //@dev: This is a gas optimislation trick reusing function instead of require in modifier
-    function beforeOnlyListedNFT(ListNFT memory _listing) internal pure {
+    function beforeOnlyListedNFT(MarketplaceStructs.ListNFT memory _listing)
+        internal
+        pure
+    {
         //TODO: Move to storage contract
         //FIXME: move this zero check somewhere better or remove it for explicit zero check modifier?
         if (_listing.seller == address(0)) {
@@ -92,19 +98,22 @@ abstract contract MarketplaceValidators {
         }
     }
 
-    modifier onlyListedNFT(ListNFT memory _listing) {
+    modifier onlyListedNFT(MarketplaceStructs.ListNFT memory _listing) {
         beforeOnlyListedNFT(_listing);
         _;
     }
 
-    function beforeNonListedNFT(ListNFT memory _listing) internal pure {
+    function beforeNonListedNFT(MarketplaceStructs.ListNFT memory _listing)
+        internal
+        pure
+    {
         //TODO: Move to storage contract
         if (_listing.seller != address(0) && _listing.sold) {
             revert ItemIsAlreadyListed(_listing);
         }
     }
 
-    modifier nonListedNFT(ListNFT memory _listing) {
+    modifier nonListedNFT(MarketplaceStructs.ListNFT memory _listing) {
         beforeNonListedNFT(_listing);
         _;
     }
@@ -124,7 +133,7 @@ abstract contract MarketplaceValidators {
     }
 
     function beforeOnlyStartedAuction(
-        AuctionNFT memory _auction,
+        MarketplaceStructs.AuctionNFT memory _auction,
         uint256 _timestamp
     ) internal pure {
         if (_timestamp < _auction.startTime) {
@@ -137,7 +146,7 @@ abstract contract MarketplaceValidators {
     }
 
     modifier onlyStartedAuction(
-        AuctionNFT memory _auction,
+        MarketplaceStructs.AuctionNFT memory _auction,
         uint256 _timestamp
     ) {
         beforeOnlyStartedAuction(_auction, _timestamp);
@@ -145,7 +154,7 @@ abstract contract MarketplaceValidators {
     }
 
     function beforeNonStartedAuction(
-        AuctionNFT memory _auction,
+        MarketplaceStructs.AuctionNFT memory _auction,
         uint256 _timestamp
     ) internal pure {
         if (_timestamp >= _auction.startTime) {
@@ -154,13 +163,16 @@ abstract contract MarketplaceValidators {
         }
     }
 
-    modifier nonStartedAuction(AuctionNFT memory _auction, uint256 _timestamp) {
+    modifier nonStartedAuction(
+        MarketplaceStructs.AuctionNFT memory _auction,
+        uint256 _timestamp
+    ) {
         beforeNonStartedAuction(_auction, _timestamp);
         _;
     }
 
     function beforeOnlyFinishedAuction(
-        AuctionNFT memory _auction,
+        MarketplaceStructs.AuctionNFT memory _auction,
         uint256 _timestamp
     ) internal pure {
         //TODO: Move to storage contract
@@ -171,7 +183,7 @@ abstract contract MarketplaceValidators {
     }
 
     modifier onlyFinishedAuction(
-        AuctionNFT memory _auction,
+        MarketplaceStructs.AuctionNFT memory _auction,
         uint256 _timestamp
     ) {
         beforeOnlyFinishedAuction(_auction, _timestamp);
@@ -179,7 +191,7 @@ abstract contract MarketplaceValidators {
     }
 
     function beforeOnlySufficientBidAmount(
-        AuctionNFT memory _auction,
+        MarketplaceStructs.AuctionNFT memory _auction,
         uint256 _bidAmount
     ) internal pure {
         if (_bidAmount <= _auction.highestBid + _auction.minBid) {
@@ -188,7 +200,7 @@ abstract contract MarketplaceValidators {
     }
 
     modifier onlySufficientBidAmount(
-        AuctionNFT memory _auction,
+        MarketplaceStructs.AuctionNFT memory _auction,
         uint256 _bidAmount
     ) {
         beforeOnlySufficientBidAmount(_auction, _bidAmount);
@@ -196,7 +208,7 @@ abstract contract MarketplaceValidators {
     }
 
     function beforeNonFinishedAuction(
-        AuctionNFT memory _auction,
+        MarketplaceStructs.AuctionNFT memory _auction,
         uint256 _timestamp
     ) internal pure {
         //TODO: Move to storage contract
@@ -207,25 +219,31 @@ abstract contract MarketplaceValidators {
     }
 
     modifier nonFinishedAuction(
-        AuctionNFT memory _auction,
+        MarketplaceStructs.AuctionNFT memory _auction,
         uint256 _timestamp
     ) {
         beforeNonFinishedAuction(_auction, _timestamp);
         _;
     }
 
-    function beforeNonCalledAuction(AuctionNFT memory _auction) internal pure {
+    function beforeNonCalledAuction(MarketplaceStructs.AuctionNFT memory _auction)
+        internal
+        pure
+    {
         if (_auction.called) {
             revert AuctionIsCalled(_auction);
         }
     }
 
-    modifier nonCalledAuction(AuctionNFT memory _auction) {
+    modifier nonCalledAuction(MarketplaceStructs.AuctionNFT memory _auction) {
         beforeNonCalledAuction(_auction);
         _;
     }
 
-    function beforeOnlyAuctioned(AuctionNFT memory _auction) internal pure {
+    function beforeOnlyAuctioned(MarketplaceStructs.AuctionNFT memory _auction)
+        internal
+        pure
+    {
         //TODO: Move to storage contract
         if (_auction.nft == address(0)) {
             revert AddressIsZero(_auction.nft);
@@ -235,24 +253,27 @@ abstract contract MarketplaceValidators {
         }
     }
 
-    modifier onlyAuctioned(AuctionNFT memory _auction) {
+    modifier onlyAuctioned(MarketplaceStructs.AuctionNFT memory _auction) {
         beforeOnlyAuctioned(_auction);
         _;
     }
 
-    function beforeNonAuctioned(AuctionNFT memory _auction) internal pure {
+    function beforeNonAuctioned(MarketplaceStructs.AuctionNFT memory _auction)
+        internal
+        pure
+    {
         if (_auction.nft != address(0) && !_auction.called) {
             revert ItemIsAlreadyAuctioned(_auction);
         }
     }
 
-    modifier nonAuctioned(AuctionNFT memory _auction) {
+    modifier nonAuctioned(MarketplaceStructs.AuctionNFT memory _auction) {
         beforeNonAuctioned(_auction);
         _;
     }
 
     function beforeOnlyAuctionCreator(
-        AuctionNFT memory _auction,
+        MarketplaceStructs.AuctionNFT memory _auction,
         address _sender
     ) internal pure {
         if (_auction.creator != _sender) {
@@ -260,24 +281,30 @@ abstract contract MarketplaceValidators {
         }
     }
 
-    modifier onlyAuctionCreator(AuctionNFT memory _auction, address _sender) {
+    modifier onlyAuctionCreator(
+        MarketplaceStructs.AuctionNFT memory _auction,
+        address _sender
+    ) {
         beforeOnlyAuctionCreator(_auction, _sender);
         _;
     }
 
-    function beforeNonBiddedAuction(AuctionNFT memory _auction) internal pure {
+    function beforeNonBiddedAuction(MarketplaceStructs.AuctionNFT memory _auction)
+        internal
+        pure
+    {
         if (_auction.lastBidder != address(0)) {
             revert AuctionHasBidders(_auction);
         }
     }
 
-    modifier nonBiddedAuction(AuctionNFT memory _auction) {
+    modifier nonBiddedAuction(MarketplaceStructs.AuctionNFT memory _auction) {
         beforeNonBiddedAuction(_auction);
         _;
     }
 
     function beforeOnlyAuthorisedAuctionCaller(
-        AuctionNFT memory _auction,
+        MarketplaceStructs.AuctionNFT memory _auction,
         address _marketplaceOwner,
         address _sender
     ) internal pure {
@@ -296,7 +323,7 @@ abstract contract MarketplaceValidators {
     }
 
     modifier onlyAuthorisedAuctionCaller(
-        AuctionNFT memory _auction,
+        MarketplaceStructs.AuctionNFT memory _auction,
         address _marketplaceOwner,
         address _sender
     ) {
@@ -315,41 +342,50 @@ abstract contract MarketplaceValidators {
         _;
     }
 
-    function beforeOnlyNFTOffer(OfferNFT memory _offer) internal pure {
+    function beforeOnlyNFTOffer(MarketplaceStructs.OfferNFT memory _offer)
+        internal
+        pure
+    {
         //TODO: Move to storage contract
         if (_offer.offerPrice <= 0 || _offer.offerer == address(0)) {
             revert ItemIsNotOffered(_offer);
         }
     }
 
-    modifier onlyNFTOffer(OfferNFT memory _offer) {
+    modifier onlyNFTOffer(MarketplaceStructs.OfferNFT memory _offer) {
         beforeOnlyNFTOffer(_offer);
         _;
     }
 
-    function beforeOnlyNFTOfferOwner(OfferNFT memory _offer, address _sender)
-        internal
-        pure
-    {
+    function beforeOnlyNFTOfferOwner(
+        MarketplaceStructs.OfferNFT memory _offer,
+        address _sender
+    ) internal pure {
         if (_offer.offerer != _sender)
             revert NotOfferer(_offer.offerer, _sender);
     }
 
-    modifier onlyNFTOfferOwner(OfferNFT memory _offer, address _sender) {
+    modifier onlyNFTOfferOwner(
+        MarketplaceStructs.OfferNFT memory _offer,
+        address _sender
+    ) {
         beforeOnlyNFTOfferOwner(_offer, _sender);
         _;
     }
 
-    function beforeNonAcceptedOffer(OfferNFT memory _offer, address _sender)
-        internal
-        pure
-    {
+    function beforeNonAcceptedOffer(
+        MarketplaceStructs.OfferNFT memory _offer,
+        address _sender
+    ) internal pure {
         if (_offer.accepted) {
             revert OfferAlreadyAccepted(_offer.offerer, _sender);
         }
     }
 
-    modifier nonAcceptedOffer(OfferNFT memory _offer, address _sender) {
+    modifier nonAcceptedOffer(
+        MarketplaceStructs.OfferNFT memory _offer,
+        address _sender
+    ) {
         beforeNonAcceptedOffer(_offer, _sender);
         _;
     }

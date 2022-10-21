@@ -39,7 +39,7 @@ import "./interfaces/IAfricarareNFTFactory.sol";
 import "./interfaces/IAfricarareNFT.sol";
 //**********MARKETPLACE************
 import "./errors/errors.sol";
-import "./structures/structs.sol";
+import {MarketplaceStructs} from "./structures/MarketplaceStructs.sol";
 import {MarketplaceValidators} from "./validation/validators.sol";
 import {MarketplaceEvents} from "./events/events.sol";
 //************ROYALTIES************
@@ -59,7 +59,7 @@ import {IERC2981Support} from "./royalties/IERC2981Support.sol";
     @TODO: Mock contracts
     @TODO: End to end unit test all custom errors and exceptions
     @TODO: clean up offer auction logic
-    @TODO: add timestamps to structs and events
+    @TODO: add timestamps to MarketplaceStructs and events
     @TODO: use safe 1155 721 interfaces like safe erc20?
     @TODO: remove payable tokens as well as add them
     @TODO: test fee logic math is correctly deducting right amounts
@@ -89,14 +89,15 @@ contract AfricarareNFTMarketplace is
 
     //TODO: Move to storage contract
     // @dev: nft => tokenId => auction struct
-    mapping(address => mapping(uint256 => ListNFT)) private listNfts;
+    mapping(address => mapping(uint256 => MarketplaceStructs.ListNFT)) private listNfts;
 
     // @dev: nft => tokenId => offerer address => offer struct
-    mapping(address => mapping(uint256 => mapping(address => OfferNFT)))
+    mapping(address => mapping(uint256 => mapping(address => MarketplaceStructs.OfferNFT)))
         private offerNfts;
 
     // @dev: nft => tokenId => auction struct
-    mapping(address => mapping(uint256 => AuctionNFT)) private auctionNfts;
+    mapping(address => mapping(uint256 => MarketplaceStructs.AuctionNFT))
+        private auctionNfts;
 
     // @dev: auction index => bidding counts => bidder address => bid price
     mapping(uint256 => mapping(uint256 => mapping(address => uint256)))
@@ -150,7 +151,7 @@ contract AfricarareNFTMarketplace is
         );
 
         //TODO: Move to storage contract
-        listNfts[_nftAddress][_tokenId] = ListNFT({
+        listNfts[_nftAddress][_tokenId] = MarketplaceStructs.ListNFT({
             nft: _nftAddress,
             tokenId: _tokenId,
             seller: _msgSender(),
@@ -191,7 +192,7 @@ contract AfricarareNFTMarketplace is
         nonReentrant
     {
         //TODO: Move to storage contract
-        ListNFT memory listing = listNfts[_nftAddress][_tokenId];
+        MarketplaceStructs.ListNFT memory listing = listNfts[_nftAddress][_tokenId];
 
         listing.sold = true;
 
@@ -259,7 +260,7 @@ contract AfricarareNFTMarketplace is
         nonReentrant
     {
         //TODO: Move to storage contract
-        ListNFT memory nft = listNfts[_nftAddress][_tokenId];
+        MarketplaceStructs.ListNFT memory nft = listNfts[_nftAddress][_tokenId];
         IERC20Upgradeable(nft.payToken).safeTransferFrom(
             _msgSender(),
             address(this),
@@ -267,7 +268,7 @@ contract AfricarareNFTMarketplace is
         );
 
         //TODO: Move to storage contract
-        offerNfts[_nftAddress][_tokenId][_msgSender()] = OfferNFT({
+        offerNfts[_nftAddress][_tokenId][_msgSender()] = MarketplaceStructs.OfferNFT({
             nft: nft.nft,
             tokenId: nft.tokenId,
             offerer: _msgSender(),
@@ -300,7 +301,9 @@ contract AfricarareNFTMarketplace is
         nonReentrant
     {
         //TODO: Move to storage contract
-        OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][_msgSender()];
+        MarketplaceStructs.OfferNFT memory offer = offerNfts[_nftAddress][_tokenId][
+            _msgSender()
+        ];
         //TODO: Move to storage contract
         delete offerNfts[_nftAddress][_tokenId][_msgSender()];
         IERC20Upgradeable(offer.payToken).safeTransfer(
@@ -331,9 +334,11 @@ contract AfricarareNFTMarketplace is
         nonReentrant
     {
         //TODO: Move to storage contract
-        OfferNFT storage offer = offerNfts[_nftAddress][_tokenId][_offerer];
+        MarketplaceStructs.OfferNFT storage offer = offerNfts[_nftAddress][_tokenId][
+            _offerer
+        ];
         //TODO: Move to storage contract
-        ListNFT storage auction = listNfts[offer.nft][offer.tokenId];
+        MarketplaceStructs.ListNFT storage auction = listNfts[offer.nft][offer.tokenId];
 
         auction.sold = true;
         offer.accepted = true;
@@ -404,7 +409,7 @@ contract AfricarareNFTMarketplace is
         nonReentrant
     {
         //TODO: Move to storage contract
-        auctionNfts[_nftAddress][_tokenId] = AuctionNFT({
+        auctionNfts[_nftAddress][_tokenId] = MarketplaceStructs.AuctionNFT({
             nft: _nftAddress,
             tokenId: _tokenId,
             creator: _msgSender(),
@@ -481,7 +486,9 @@ contract AfricarareNFTMarketplace is
         onlySufficientBidAmount(auctionNfts[_nftAddress][_tokenId], _bidPrice)
     {
         //TODO: Move to storage contract
-        AuctionNFT storage auction = auctionNfts[_nftAddress][_tokenId];
+        MarketplaceStructs.AuctionNFT storage auction = auctionNfts[_nftAddress][
+            _tokenId
+        ];
         IERC20Upgradeable payToken = IERC20Upgradeable(auction.payToken);
         // Set new highest bid price
         auction.lastBidder = _msgSender();
@@ -519,7 +526,9 @@ contract AfricarareNFTMarketplace is
         )
     {
         //TODO: Move to storage contract
-        AuctionNFT storage auction = auctionNfts[_nftAddress][_tokenId];
+        MarketplaceStructs.AuctionNFT storage auction = auctionNfts[_nftAddress][
+            _tokenId
+        ];
 
         auction.called = true;
         auction.winner = auction.lastBidder;
@@ -587,7 +596,7 @@ contract AfricarareNFTMarketplace is
     function getListedNFT(address _nftAddress, uint256 _tokenId)
         public
         view
-        returns (ListNFT memory)
+        returns (MarketplaceStructs.ListNFT memory)
     {
         return listNfts[_nftAddress][_tokenId];
     }
