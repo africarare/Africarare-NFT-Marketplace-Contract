@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { BigNumber, Signer } from "ethers";
 import { ethers } from "hardhat";
 import { before } from "mocha";
-import {logger} from "../config/winston.config";
+import { logger } from "../config/winston.config";
 
 import {
   AfricarareNFT,
@@ -40,17 +40,30 @@ describe("Africarare Marketplace", () => {
 
   // rinkeby
   // let proxyRegistryAddress = "0x1E525EEAF261cA41b809884CBDE9DD9E1619573A";
-    // mainnet
-    // let proxyRegistryAddress = "0xa5409ec958c83c3f309868babaca7c86dcb077c1";
-  logger.info("Test suite started")
-  logger.info("Platform fee is 9.99% in integer is: " + platformFee)
-  logger.info("Creator royalty percentage is 9.99% in integer is: " + creatorRoyaltyPercentage)
-  logger.info("Offer price for testing is 1 ETH, in wei is: " + toWei(offerPrice))
-  logger.info("Test list price is 1 ETH, in wei is: " + toWei(listPrice))
-  logger.info("Test first bid price is 1.05 ETH, in wei is: " + toWei(initialBidPrice))
-  logger.info("Test winning bid price is 1.05 ETH, in wei is: " + toWei(winningBidPrice))
-  logger.info("Test min bid price is 0.05 ETH, in wei is: " + toWei(minimumBidPrice))
-  logger.info("Test min bid price is 0.05 ETH, in wei is: " + toWei(minimumBidPrice))
+  // mainnet
+  // let proxyRegistryAddress = "0xa5409ec958c83c3f309868babaca7c86dcb077c1";
+  logger.info("Test suite started");
+  logger.info("Platform fee is 9.99% in integer is: " + platformFee);
+  logger.info(
+    "Creator royalty percentage is 9.99% in integer is: " +
+      creatorRoyaltyPercentage
+  );
+  logger.info(
+    "Offer price for testing is 1 ETH, in wei is: " + toWei(offerPrice)
+  );
+  logger.info("Test list price is 1 ETH, in wei is: " + toWei(listPrice));
+  logger.info(
+    "Test first bid price is 1.05 ETH, in wei is: " + toWei(initialBidPrice)
+  );
+  logger.info(
+    "Test winning bid price is 1.05 ETH, in wei is: " + toWei(winningBidPrice)
+  );
+  logger.info(
+    "Test min bid price is 0.05 ETH, in wei is: " + toWei(minimumBidPrice)
+  );
+  logger.info(
+    "Test min bid price is 0.05 ETH, in wei is: " + toWei(minimumBidPrice)
+  );
 
   before(async () => {
     [owner, creator, buyer, offerer, bidder] = await ethers.getSigners();
@@ -89,12 +102,24 @@ describe("Africarare Marketplace", () => {
     const buyerAddress = await buyer.getAddress();
     const offererAddress = await offerer.getAddress();
     const bidderAddress = await bidder.getAddress();
-    await payableToken.connect(owner).transfer(buyerAddress, toWei(testPurchaserWalletBalance));
-    expect(await payableToken.balanceOf(buyerAddress)).to.eq(toWei(testPurchaserWalletBalance));
-    await payableToken.connect(owner).transfer(offererAddress, toWei(testPurchaserWalletBalance));
-    expect(await payableToken.balanceOf(offererAddress)).to.eq(toWei(testPurchaserWalletBalance));
-    await payableToken.connect(owner).transfer(bidderAddress, toWei(testPurchaserWalletBalance));
-    expect(await payableToken.balanceOf(bidderAddress)).to.eq(toWei(testPurchaserWalletBalance));
+    await payableToken
+      .connect(owner)
+      .transfer(buyerAddress, toWei(testPurchaserWalletBalance));
+    expect(await payableToken.balanceOf(buyerAddress)).to.eq(
+      toWei(testPurchaserWalletBalance)
+    );
+    await payableToken
+      .connect(owner)
+      .transfer(offererAddress, toWei(testPurchaserWalletBalance));
+    expect(await payableToken.balanceOf(offererAddress)).to.eq(
+      toWei(testPurchaserWalletBalance)
+    );
+    await payableToken
+      .connect(owner)
+      .transfer(bidderAddress, toWei(testPurchaserWalletBalance));
+    expect(await payableToken.balanceOf(bidderAddress)).to.eq(
+      toWei(testPurchaserWalletBalance)
+    );
 
     const royaltyRecipient = await creator.getAddress();
     const tx = await factory
@@ -127,7 +152,18 @@ describe("Africarare Marketplace", () => {
       expect(await nft.ownerOf(tokenId)).to.eq(to, "Mint NFT has failed.");
     });
 
+    it("Non-approved sellers should be reverted", async () => {
+      //FIXME: Get approved and check approval for both 721 and 1155
+      // await nft.connect(creator).approve(marketplace.address, tokenId);
+      await expect(
+        marketplace
+          .connect(creator)
+          .listNft(nft.address, tokenId, payableToken.address, toWei(listPrice))
+      ).to.be.revertedWith("ERC721: caller is not token owner nor approved");
+    });
+
     it("Creator should list NFT on the marketplace", async () => {
+      //FIXME: Get approved and check approval for both 721 and 1155
       await nft.connect(creator).approve(marketplace.address, tokenId);
 
       const tx = await marketplace
